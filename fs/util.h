@@ -5,10 +5,15 @@ struct superblock {
 	int swap_offset; /* swap region offset in blocks */
 	int free_inode; /* head of free inode list, index */
 	int free_block; /* head of free block list, index */
+	int root_inode; /* pointer to inode of the root directory */
 };
 
 struct inode {
 	int next_inode; /* index of next free inode */
+	int parent; /* inode of parent directory */
+	int permission;  /* permission */
+	int type; /* type of the file */
+
 	int protect; /* protection field */
 	int nlink; /* number of links to this file */
 	int size; /* numer of bytes in file */
@@ -17,6 +22,7 @@ struct inode {
 	int ctime; /* change time */
 	int mtime; /* modification time */
 	int atime; /* access time */
+
 	int dblocks[N_DBLOCKS]; /* pointers to data blocks */
 	int iblocks[N_IBLOCKS]; /* pointers to indirect blocks */
 	int i2block; /* pointer to doubly indirect block */
