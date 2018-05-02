@@ -14,9 +14,14 @@ struct superblock {
 	int size; /* size of blocks in bytes */
 	int inode_offset; /* offset of inode region in blocks */
 	int data_offset; /* data region offset in blocks */
+	int free_block_offset; /* reserved region to store the indices of free blocks */
+	/******************************************************
+	For a block reserved to store free block indices, its 
+	first int is the number of block indices stored in the 
+	block. The rest are all block indices.
+	******************************************************/
 	int swap_offset; /* swap region offset in blocks */
 	int free_inode; /* head of free inode list, index */
-	int free_block; /* head of free block list, index */
 };
 
 struct inode {
@@ -26,11 +31,11 @@ struct inode {
 	int parent; /* inode of parent directory */
 	int permission;  /* permission */
 	char type; /* type of the file */
-	/***************************
+	/******************************************************
     	d 	Directory.
     	l 	Symbolic link.
     	- 	Regular file.
-	***************************/
+	******************************************************/
 	int nlink; /* number of links to this file */
 	int size; /* numer of bytes in file */
 	int uid; /* owner’s user ID */

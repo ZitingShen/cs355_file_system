@@ -9,23 +9,44 @@
 #include <time.h>
 #include <errno.h>
 
-#define BLOCK_SIZE 	512
-#define POINTER_N	BLOCK_SIZE/sizeof(int)
+#define BLOCK_SIZE 			512
+#define POINTER_N			BLOCK_SIZE/sizeof(int)
+#define	FREE_RESERVE_MAX	POINTER_N-1
 
 #define BOOT 		'b'
 #define INODE_RATIO	1/100
+
 
 void write_triple_indirect_block(int block, struct superblock *sb, int *num_block);
 void write_double_indirect_block(int block, struct superblock *sb, int *num_block);
 void write_single_indirect_block(int block, struct superblock *sb, int *num_block);
 void write_direct_block(int block, struct superblock *sb);
 
-void *disk;
-int ind = 0;
-int next = 0;
-
 char *file_name = "";
 int file_size = 1024*1024;
+
+void parse(int argc, char **argv);
+
+/******************************************************
+
+Format of an empty disk:
+************************
+boot block
+************************
+superblock
+************************
+inode region
+************************
+data region
+(including free blocks)
+************************
+reserved region to
+store free block indices
+************************
+swap region
+************************
+
+******************************************************/
 
 int main(int argc, char **argv) {
 	int fd, out;
@@ -39,26 +60,31 @@ int main(int argc, char **argv) {
 	fd = open(file_name, O_RDWR | O_CREAT, 0666);
 	ftruncate(fd, file_size);
 
-	disk = malloc(OFFSET_SUPERBLOCK - OFFSET_BOOT);
-	if(!disk) {
-		printf("%s: %s\n", "Fail to malloc space for the disk image", strerror(errno));
-		return -1;
-	}
-	memset(disk, BOOT, OFFSET_SUPERBLOCK - OFFSET_BOOT);
-	out = write(fd, disk, OFFSET_SUPERBLOCK - OFFSET_BOOT);
+	char boot_block[OFFSET_SUPERBLOCK - OFFSET_BOOT];
+	memset(&boot_block, BOOT, OFFSET_SUPERBLOCK - OFFSET_BOOT);
+	out = write(fd, &boot_block, OFFSET_SUPERBLOCK - OFFSET_BOOT);
 	if(out != OFFSET_SUPERBLOCK - OFFSET_BOOT) {
 		printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 		return -1;
 	}
-	free(disk);
 
 	struct superblock sb;
 	sb.size = BLOCK_SIZE;
 	sb.inode_offset = 0;
 	sb.data_offset = (file_size*INODE_RATIO)/BLOCK_SIZE;
-	sb.swap_offset = (file_size - OFFSET_START)/BLOCK_SIZE;
+
+	/******************************************************
+	For a block reserved to store free block indices, its 
+	first int is the number of block indices stored in the 
+	block. The rest are all block indices.
+	******************************************************/
+	int free_block_num = (file_size - OFFSET_START)/BLOCK_SIZE;
+	int free_block_reserve_num = free_block_num/(POINTER_N-1);
+	if (free_block_reserve_num % (POINTER_N-1) != 0)
+		free_block_reserve_num++;
+	sb.free_block_offset = free_block_num - free_block_reserve_num;
+	sb.swap_offset = free_block_num;
 	sb.free_inode = 1;
-	sb.free_block = (file_size - OFFSET_START)/BLOCK_SIZE - 1;
 
 	out = write(fd, &sb, sizeof(struct superblock));
 	if(out != sizeof(struct superblock)) {
@@ -111,25 +137,34 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	// write free data block lists
-	int free_current = OFFSET_START + sb.free_inode*BLOCK_SIZE;
-	int counter = 0;
-	lseek(fd, offset, SEEK_SET);
+	// store free data block indices
+	int offset = OFFSET_START + sb.swap_offset*BLOCK_SIZE;
+	int counter = free_block_num-1;
+	int free_reserve_counter = FREE_RESERVE_MAX;
+	while(counter >= 0) {
+		offset -= BLOCK_SIZE;
+		lseek(fd, offset, SEEK_SET);
+		if(counter >= FREE_RESERVE_MAX-1) {
+			free_reserve_counter = FREE_RESERVE_MAX;
+			out = write(fd, &free_reserve_counter, sizeof(int));
+		} else {
+			free_reserve_counter = counter+1;
+			out = write(fd, &free_reserve_counter, sizeof(int));
+		}
+		if(out != sizeof(int)) {
+			printf("%s: %s\n", "Fail to write disk image", strerror(errno));
+			return -1;
+		}
 
-	int *end = (int *) (disk + OFFSET_START + (sb.data_offset + next)*BLOCK_SIZE);
-	*end = -1;
-
-	memcpy(disk + OFFSET_START + sb.inode_offset*BLOCK_SIZE, &node, sizeof(struct inode));
-	memcpy(disk + OFFSET_SUPERBLOCK, &sb, sizeof(struct superblock));
-
-	int out_fd = open(FILE_NAME, O_RDWR | O_CREAT, 0666);
-	ftruncate(out_fd, OUTPUT_SIZE);
-	int out_write = write(out_fd, disk, OUTPUT_SIZE);
-	if(out_write != OUTPUT_SIZE) {
-		printf("%s: %s\n", "Fail to write disk image", strerror(errno));
-		return -1;
-	}
-	free(disk);
+		for(int i = 0; i < FREE_RESERVE_MAX && counter >= 0; i++, counter--) {
+			printf("%d\n", counter);;
+			out = write(fd, &counter, sizeof(int));
+			if(out != sizeof(int)) {
+				printf("%s: %s\n", "Fail to write disk image", strerror(errno));
+				return -1;
+			}
+		}
+	}	
 }
 
 void parse(int argc, char **argv) {
