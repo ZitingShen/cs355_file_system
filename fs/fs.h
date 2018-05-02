@@ -1,3 +1,17 @@
+#ifndef __FS_H__
+#define __FS_H__
+
+#include "util.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+
+struct disk_image {
+	int id;
+	struct superblock sb;
+	struct inode *inodes;
+	struct disk_image *next;
+};
+
 /* Return file descriptor on success. -1 on failure and set errno. */
 int f_open(const char *path, const char *mode);
 
@@ -26,6 +40,14 @@ int f_mkdir(const char *path, mode_t mode);
 
 int f_rmdir(const char *path);
 
-int f_mount(const char *dir, int flags, void *data);
+/*
+Available flags (used with data):
+*/
+int f_mount(const char *source, const char *target, int flags, void *data);
 
-int f_unmount(const char *dir, int flags);
+/*
+Available flags:
+*/
+int f_umount(const char *target, int flags);
+
+#endif

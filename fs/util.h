@@ -1,5 +1,5 @@
-#ifndef __UTIL__
-#define __UTIL__
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 #define	POINTER_SIZE		sizeof(int)
 
@@ -37,7 +37,10 @@ struct inode {
     	- 	Regular file.
 	******************************************************/
 	int nlink; /* number of links to this file */
-	int size; /* numer of bytes in file */
+	int size; /* numer of bytes in file, or number of entries in directory file */
+    /******************************************************
+	directory entry: inode number (4 bytes) + file name (12 bytes)
+    ******************************************************/
 	int uid; /* owner’s user ID */
 	int gid; /* owner’s group ID */
 	/***************************

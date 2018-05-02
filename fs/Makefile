@@ -3,8 +3,17 @@ CFLAGS=-g -Wall
 
 all:
 
-format: format.c util.h
-	$(CC) $(CFLAGS) $< -o $@
+format: format_main.c format.o
+	$(CC) $(CFLAGS) format.o $< -o $@
+
+format.o: format.c
+	$(CC) $(CFLAGS) $< -c
+
+fs.o: fs.c
+	$(CC) $(CFLAGS) $< -c
+
+tests: tests.c fs.o format.o
+	$(CC) $(CFLAGS) $< fs.o format.o -o $@
 
 clean:
-	rm format
+	rm format format.o fs.o

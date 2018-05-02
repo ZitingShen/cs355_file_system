@@ -1,4 +1,5 @@
 #include "util.h"
+#include "format.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,17 +16,6 @@
 
 #define BOOT 		'b'
 #define INODE_RATIO	1/100
-
-
-void write_triple_indirect_block(int block, struct superblock *sb, int *num_block);
-void write_double_indirect_block(int block, struct superblock *sb, int *num_block);
-void write_single_indirect_block(int block, struct superblock *sb, int *num_block);
-void write_direct_block(int block, struct superblock *sb);
-
-char *file_name = "";
-int file_size = 1024*1024;
-
-void parse(int argc, char **argv);
 
 /******************************************************
 
@@ -48,16 +38,14 @@ swap region
 
 ******************************************************/
 
-int main(int argc, char **argv) {
+int format(const char *file_name, int file_size) {
 	int fd, out;
 
-	if(argc != 2 && argc != 4) {
-		printf("usage: format <filename> [-s <file size>]\n");
-		exit(-1);
+	fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC, 0666);
+	if(fd == -1) {
+		printf("%s: %s\n", "Fail to create the disk image", strerror(errno));
+		return -1;
 	}
-	parse(argc, argv);
-
-	fd = open(file_name, O_RDWR | O_CREAT, 0666);
 	ftruncate(fd, file_size);
 
 	char boot_block[OFFSET_SUPERBLOCK - OFFSET_BOOT];
@@ -92,6 +80,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
+	lseek(fd, OFFSET_START + sb.inode_offset*sb.size, SEEK_SET);
 	// write root directory
 	struct inode node;
 	node.next_inode = 0;
@@ -163,32 +152,6 @@ int main(int argc, char **argv) {
 				return -1;
 			}
 		}
-	}	
-}
-
-void parse(int argc, char **argv) {
-	if (argc == 2) {
-		file_name = argv[1];
-	} else {
-		if (strcmp(argv[1], "-s") == 0) {
-			int mb = atoi(argv[2]);
-			if(mb <= 0) {
-				printf("error: invalid file size\n");
-				exit(-1);
-			}
-			file_size *= mb;
-			file_name = argv[3];
-		} else if (strcmp(argv[2], "-s") == 0) {
-			int mb = atoi(argv[3]);
-			if(mb <= 0) {
-				printf("error: invalid file size\n");
-				exit(-1);
-			}
-			file_size *= mb;
-			file_name = argv[1];
-		} else {
-			printf("usage: format <filename> [-s <file size>]\n");
-			exit(-1);
-		}
 	}
+	return 0;
 }

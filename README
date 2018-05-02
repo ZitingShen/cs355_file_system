@@ -24,3 +24,5 @@ swap region
 
 Limitations:
 1. Format will set the initial data_offset to 1% of the disk image size to leave some space for the inode region to grow. If the inode region grows larger than the given size, an error will be returned.
+
+2. The disk can have at most 4294967295 files, and each file has at most 12 characters name.
