@@ -5,5 +5,22 @@ Compile:
 
 Execute:
 
+Disk Format:
+************************
+boot block
+************************
+superblock
+************************
+inode region
+************************
+data region
+(including free blocks)
+************************
+reserved region to
+store free block indices
+************************
+swap region
+************************
+
 Limitations:
 1. Format will set the initial data_offset to 1% of the disk image size to leave some space for the inode region to grow. If the inode region grows larger than the given size, an error will be returned.
