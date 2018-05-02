@@ -157,7 +157,6 @@ int main(int argc, char **argv) {
 		}
 
 		for(int i = 0; i < FREE_RESERVE_MAX && counter >= 0; i++, counter--) {
-			printf("%d\n", counter);;
 			out = write(fd, &counter, sizeof(int));
 			if(out != sizeof(int)) {
 				printf("%s: %s\n", "Fail to write disk image", strerror(errno));
