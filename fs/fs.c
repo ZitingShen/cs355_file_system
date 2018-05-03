@@ -9,10 +9,65 @@
 #include <unistd.h>
 #include <errno.h>
 
+extern int pwd_fd = 0;
+struct inode *root = 0;
+struct disk_image *cur_disk = 0;
 struct disk_image *disks = 0;
+struct open_file open_files[OPEN_FILE_MAX];
+int next_fd = 0;
 
+int increment_next_fd();
+
+//***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
-	return 0;
+	struct inode *target;
+	char *seg = strtok(path, PATH_DELIM);
+	if(*path == PATH_DELIM) { // absolute path
+		open_files[next_fd].node = root;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	} else { // relative path
+		open_files[next_fd].node = open_files[pwd_fd].node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	}
+
+	while(seg) {
+		if(open_files[next_fd].node.type != 'd') {
+			errno = ENOENT;
+			return -1;
+		}
+		struct file_entry subfile = f_readdir(next_fd);
+		while(subfile && strncmp(seg, subfile.file_name, FILE_NAME_LENGTH)) {
+			subfile = f_readdir(next_fd);
+		}
+		if(!subfile) {
+			errno = ENOENT;
+			return -1;
+		}
+
+		open_files[next_fd].node = subfile.node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+		seg = strtok(NULL, PATH_DELIM);
+	}
+
+	int return_fd = next_fd;
+	if(increment_next_fd() == -1) {
+		return -1;
+	}
+	return return_fd;
+}
+
+struct file_entry f_readdir(int fd) {
+	// test if the directory can be read
+	struct file_entry subfile;
+	int block_num = open_files[fd].offset/(cur_disk->sb.size/FILE_ENTRY_SIZE);
+	int block_rmd = open_files[fd].offset % (cur_disk->sb.size/FILE_ENTRY_SIZE);
+	if(block_rmd != 0) {
+		block_num++;
+	}
+	void *entry = locate_offset(open_files[fd].node, block_num, block_rmd);
 }
 
 int f_mount(const char *source, const char *target, int flags, void *data) {
@@ -24,7 +79,6 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 		} else {
 			fd = open(source, O_RDWR);
 			if(fd == -1) {
-				printf("%s: %s\n", "Fail to mount disk", strerror(errno));
 				return -1;
 			}
 		}
@@ -36,7 +90,6 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			lseek(fd, OFFSET_SUPERBLOCK, SEEK_SET);
 			result = read(fd, &(disks->sb), sizeof(struct superblock));
 			if(result == -1) {
-				printf("%s: %s\n", "Fail to read in the disk", strerror(errno));
 				return -1;
 			}
 			lseek(fd, OFFSET_START + disks->sb.inode_offset*disks->sb.size, SEEK_SET);
@@ -44,9 +97,18 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			disks->inodes = (struct inode *) malloc(inode_region_size);
 			result = read(fd, disks->inodes, inode_region_size);
 			if(result == -1) {
-				printf("%s: %s\n", "Fail to read in the disk", strerror(errno));
 				return -1;
 			}
+			cur_disk = disks;
+			root = disk->inodes;
+			open_files[next_fd].node = root;
+			open_files[next_fd].offset = 0;
+			open_files[next_fd].mode = O_RDONLY;
+			pwd_fd = next_fd;
+			if(increment_next_fd() == -1) {
+				return -1;
+			}
+
 			disks->next = 0;
 		} else { // not first disk
 
@@ -64,6 +126,7 @@ int f_umount(const char *target, int flags) {
 			disks = disks->next;
 			free(current_disk->inodes);
 			free(current_disk);
+			pwd = 0;
 		}
 	} else { // umount one disk loaded at the specified location
 		     // target is the root directory of the disk
@@ -72,6 +135,27 @@ int f_umount(const char *target, int flags) {
 	return 0;
 }
 
+//****************************HELPER FUNCTIONS******************
+int increment_next_fd() {
+	int old = next_fd;
+	next_fd = (next_fd+1)%OPEN_FILE_MAX;
+	while(next_fd.ptr && next_fd != old) {
+		next_fd = (next_fd+1)%OPEN_FILE_MAX;
+	}
+	if(next_fd == old) {
+		errno = ENOMEM;
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+void *locate_offset(struct inode *node, int block_num, int block_rmd) {
+
+}
+
+
+//****************************DEBUG FUNCTIONS*******************
 void print_disks() {
 	struct disk_image *current = disks;
 	while(current) {

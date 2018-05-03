@@ -43,7 +43,6 @@ int format(const char *file_name, int file_size) {
 
 	fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if(fd == -1) {
-		printf("%s: %s\n", "Fail to create the disk image", strerror(errno));
 		return -1;
 	}
 	ftruncate(fd, file_size);
@@ -52,7 +51,6 @@ int format(const char *file_name, int file_size) {
 	memset(&boot_block, BOOT, OFFSET_SUPERBLOCK - OFFSET_BOOT);
 	out = write(fd, &boot_block, OFFSET_SUPERBLOCK - OFFSET_BOOT);
 	if(out != OFFSET_SUPERBLOCK - OFFSET_BOOT) {
-		printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 		return -1;
 	}
 
@@ -76,7 +74,6 @@ int format(const char *file_name, int file_size) {
 
 	out = write(fd, &sb, sizeof(struct superblock));
 	if(out != sizeof(struct superblock)) {
-		printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 		return -1;
 	}
 
@@ -105,7 +102,6 @@ int format(const char *file_name, int file_size) {
 
 	out = write(fd, &node, sizeof(struct inode));
 	if(out != sizeof(struct inode)) {
-		printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 		return -1;
 	}
 
@@ -121,7 +117,6 @@ int format(const char *file_name, int file_size) {
 
 		out = write(fd, &node, sizeof(struct inode));
 		if(out != sizeof(struct inode)) {
-			printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 			return -1;
 		}
 	}
@@ -141,14 +136,12 @@ int format(const char *file_name, int file_size) {
 			out = write(fd, &free_reserve_counter, sizeof(int));
 		}
 		if(out != sizeof(int)) {
-			printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 			return -1;
 		}
 
 		for(int i = 0; i < FREE_RESERVE_MAX && counter >= 0; i++, counter--) {
 			out = write(fd, &counter, sizeof(int));
 			if(out != sizeof(int)) {
-				printf("%s: %s\n", "Fail to write disk image", strerror(errno));
 				return -1;
 			}
 		}

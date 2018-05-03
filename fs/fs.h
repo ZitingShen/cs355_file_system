@@ -5,11 +5,45 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define	PATH_DELIM			"/"
+#define OPEN_FILE_MAX		100000
+#define FILE_NAME_LENGTH	12
+#define	FILE_ENTRY_SIZE		FILE_NAME_LENGTH+sizeof(int)
+
+
 struct disk_image {
 	int id;
 	struct superblock sb;
 	struct inode *inodes;
 	struct disk_image *next;
+};
+
+struct open_file {
+	struct inode *node;
+	int offset;
+	int mode;
+	/**************************************************
+	  ┌─────────────┬───────────────────────────────┐
+      │f_open() mode│ int mode                      │
+      ├─────────────┼───────────────────────────────┤
+      │     r       │ O_RDONLY                      │
+      ├─────────────┼───────────────────────────────┤
+      │     w       │ O_WRONLY | O_CREAT | O_TRUNC  │
+      ├─────────────┼───────────────────────────────┤
+      │     a       │ O_WRONLY | O_CREAT | O_APPEND │
+      ├─────────────┼───────────────────────────────┤
+      │     r+      │ O_RDWR                        │
+      ├─────────────┼───────────────────────────────┤
+      │     w+      │ O_RDWR | O_CREAT | O_TRUNC    │
+      ├─────────────┼───────────────────────────────┤
+      │     a+      │ O_RDWR | O_CREAT | O_APPEND   │
+      └─────────────┴───────────────────────────────┘
+	**************************************************/
+};
+
+struct file_entry {
+	int node;
+	char file_name[FILE_NAME_LENGTH];
 };
 
 /* Return file descriptor on success. -1 on failure and set errno. */
@@ -32,7 +66,7 @@ int f_remove(const char *path);
 /* Return file descriptor on success. -1 on failure and set errno. */
 int f_opendir(const char *path);
 
-struct dirent *f_readdir(int fd);
+struct file_entry f_readdir(int fd);
 
 int f_closedir(int fd);
 
