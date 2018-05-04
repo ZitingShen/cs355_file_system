@@ -21,7 +21,7 @@ struct disk_image {
 };
 
 struct open_file {
-	struct inode *node;
+	int node;
 	int offset;
 	/**************************************************
 	Offset is the count of file entries for directory
