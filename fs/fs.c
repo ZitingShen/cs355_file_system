@@ -80,6 +80,99 @@ int f_open(const char *path, const char *mode) {
 	return return_fd;
 }
 
+
+
+
+//success returns zero
+int f_seek(int fd, long offset, int whence){
+	if (fd > 100000){ //fd overflow
+		errno = EBADF;
+		return -1;
+	}
+	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+		errno = EBADF;
+		return -1;
+	}
+	else{ //if valid inode stored in openfiles
+		long new_offset;
+		if (whence == SEEK_SET){
+			new_offset = offset;
+		}
+		else if(whence == SEEK_CUR){
+			new_offset = openfiles[fd].offset+ offset;
+		}
+		else{
+			new_offset = ((cur_disk->inodes)[open_files[fd].node]).size + offset;
+		}
+		open_files[fd].offset = new_offset;
+		return new_offset;
+	}
+}
+
+void f_rewind(int fd){
+	if (fd > 100000){ //fd overflow
+		errno = EBADF;
+	}
+
+	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+		errno = EBADF;
+	}
+	else{
+		open_files[fd].offset = 0;
+	}
+}
+
+/*
+sample output:
+Information for testfile.sh
+---------------------------
+File Size:              36 bytes
+Number of Links:        1
+File inode:             180055
+File Permissions:       -rwxr-xr-x
+*/
+int f_stat(int fd, struct stat *buf){
+	
+	if (fd > 100000){ //fd overflow
+		errno = EBADF;
+		return -1;
+	}
+
+	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+		errno = EBADF;
+		return -1;
+	}
+	else{
+		int file_node = openfiles[fd].node;
+		int file_size = ((cur_disk -> inodes)[file_node]).size;
+		int file_link = ((cur_disk -> inodes)[file_node]).nlink;
+		char* file_permission = "";
+		int cur_mode = openfiles[fd].mode;
+
+		strcat(file_permission, &(((cur_disk -> inodes)[file_nodenode]).type)); //file type
+		if (cur_mode && O_RDONLY){ 
+			strcat(file_permission, "r");
+		}
+		else{
+			strcat(file_permission, "-");
+		}
+		if (cur_mode && O_WRONLY){
+			strcat(file_permission, "w");
+		}
+		else{
+			strcat(file_permission, "-");
+		}
+
+		printf("File information:\n");
+		printf("---------------------------\n");
+		printf("File Size:\t\t\t%d\n", file_size);
+		printf("Number of Links:\t\t%d\n", file_link);
+		printf("File inode:\t\t\t%d\n", file_node);
+		printf("File Permissions:\t\t%d\n", file_permission);
+		return 0;
+	}
+}
+
 struct file_entry f_readdir(int fd) {
 	if(!(open_files[fd].mode & O_RDONLY)) {
 		errno = EACCES;
