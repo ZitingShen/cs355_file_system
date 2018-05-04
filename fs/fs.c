@@ -11,7 +11,7 @@
 
 extern int pwd_fd = 0;
 extern int uid = 0;
-struct inode *root = 0;
+int root = 0;
 struct disk_image *cur_disk = 0;
 struct disk_image *disks = 0;
 struct open_file open_files[OPEN_FILE_MAX];
@@ -48,7 +48,7 @@ int f_open(const char *path, const char *mode) {
 	}
 
 	while(seg) {
-		if(open_files[next_fd].node.type != 'd') {
+		if(cur_disk->inodes[open_files[next_fd].node].type != 'd') {
 			errno = ENOENT;
 			return -1;
 		}
@@ -271,7 +271,7 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 				return -1;
 			}
 			cur_disk = disks;
-			root = disk->inodes;
+			root = 0;
 			open_files[next_fd].node = root;
 			open_files[next_fd].offset = 0;
 			open_files[next_fd].mode = O_RDONLY;
