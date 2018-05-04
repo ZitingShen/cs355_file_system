@@ -80,12 +80,26 @@ int f_open(const char *path, const char *mode) {
 	return return_fd;
 }
 
-
+/*can also close directory file with this function call*/
+int f_close(int fd){
+	if (fd > OPEN_FILE_MAX){ //fd overflow
+		errno = EBADF;
+		return EOF;
+	}
+	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+		errno = EBADF;
+		return EOF;
+	}
+	else{
+		openfiles[fd] = NULL;
+		return 0;
+	}
+}
 
 
 //success returns zero
 int f_seek(int fd, long offset, int whence){
-	if (fd > 100000){ //fd overflow
+	if (fd > OPEN_FILE_MAX){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -110,7 +124,7 @@ int f_seek(int fd, long offset, int whence){
 }
 
 void f_rewind(int fd){
-	if (fd > 100000){ //fd overflow
+	if (fd > OPEN_FILE_MAX){ //fd overflow
 		errno = EBADF;
 	}
 
@@ -133,7 +147,7 @@ File Permissions:       -rwxr-xr-x
 */
 int f_stat(int fd, struct stat *buf){
 	
-	if (fd > 100000){ //fd overflow
+	if (fd > OPEN_FILE_MAX){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -197,6 +211,28 @@ struct file_entry f_readdir(int fd) {
 	cur_disk->inodes[open_files[fd].node].atime = time(0);
 	write_inode(open_files[fd].node);
 	return subfile;
+}
+
+int f_closedir(int fd){
+	if (fd > OPEN_FILE_MAX){ //fd overflow
+		errno = EBADF;
+		return -1;
+	}
+	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+		errno = EBADF;
+		return -1;
+	}
+	else{
+		struct cur_inode = (cur_disk->inodes)[openfiles[fd].node];
+		if (cur_inode.type != 'd'){ //if fd is not a directory file
+			errno = EPERM;
+			return -1;
+		}
+		else{
+			openfiles[fd] = NULL;
+			return 0;
+		}
+	}
 }
 
 int f_mount(const char *source, const char *target, int flags, void *data) {
