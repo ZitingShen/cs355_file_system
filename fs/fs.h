@@ -23,6 +23,10 @@ struct disk_image {
 struct open_file {
 	struct inode *node;
 	int offset;
+	/**************************************************
+	Offset is the count of file entries for directory
+	file, and is the count of bytes otherwise.
+	**************************************************/
 	int mode;
 	/**************************************************
 	  ┌─────────────┬───────────────────────────────┐
@@ -47,6 +51,11 @@ struct file_entry {
 	int node;
 	char file_name[FILE_NAME_LENGTH];
 };
+
+struct data_block {
+	void *data;
+	int data_addr;
+}
 
 /* Return file descriptor on success. -1 on failure and set errno. */
 int f_open(const char *path, const char *mode);
