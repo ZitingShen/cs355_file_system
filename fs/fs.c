@@ -80,18 +80,22 @@ int f_open(const char *path, const char *mode) {
 	return return_fd;
 }
 
+
+
 /*can also close directory file with this function call*/
 int f_close(int fd){
 	if (fd > OPEN_FILE_MAX){ //fd overflow
 		errno = EBADF;
 		return EOF;
 	}
-	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return EOF;
 	}
 	else{
-		openfiles[fd] = NULL;
+		open_files[fd].node = -1;
+		open_files[fd].offset = 0;
+		open_files[fd].mode = -1;
 		return 0;
 	}
 }
@@ -103,17 +107,17 @@ int f_seek(int fd, long offset, int whence){
 		errno = EBADF;
 		return -1;
 	}
-	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return -1;
 	}
-	else{ //if valid inode stored in openfiles
+	else{ //if valid inode stored in open_files
 		long new_offset;
 		if (whence == SEEK_SET){
 			new_offset = offset;
 		}
 		else if(whence == SEEK_CUR){
-			new_offset = openfiles[fd].offset+ offset;
+			new_offset = open_files[fd].offset+ offset;
 		}
 		else{
 			new_offset = ((cur_disk->inodes)[open_files[fd].node]).size + offset;
@@ -128,7 +132,7 @@ void f_rewind(int fd){
 		errno = EBADF;
 	}
 
-	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 	}
 	else{
@@ -152,18 +156,18 @@ int f_stat(int fd, struct stat *buf){
 		return -1;
 	}
 
-	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return -1;
 	}
 	else{
-		int file_node = openfiles[fd].node;
+		int file_node = open_files[fd].node;
 		int file_size = ((cur_disk -> inodes)[file_node]).size;
 		int file_link = ((cur_disk -> inodes)[file_node]).nlink;
 		char* file_permission = "";
-		int cur_mode = openfiles[fd].mode;
+		int cur_mode = open_files[fd].mode;
 
-		strcat(file_permission, &(((cur_disk -> inodes)[file_nodenode]).type)); //file type
+		strcat(file_permission, &(((cur_disk -> inodes)[file_node]).type)); //file type
 		if (cur_mode && O_RDONLY){ 
 			strcat(file_permission, "r");
 		}
@@ -182,7 +186,7 @@ int f_stat(int fd, struct stat *buf){
 		printf("File Size:\t\t\t%d\n", file_size);
 		printf("Number of Links:\t\t%d\n", file_link);
 		printf("File inode:\t\t\t%d\n", file_node);
-		printf("File Permissions:\t\t%d\n", file_permission);
+		printf("File Permissions:\t\t%s\n", file_permission);
 		return 0;
 	}
 }
@@ -218,18 +222,20 @@ int f_closedir(int fd){
 		errno = EBADF;
 		return -1;
 	}
-	if (openfiles[fd] == NULL){ //fd not pointing to a valid inode
+	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return -1;
 	}
 	else{
-		struct cur_inode = (cur_disk->inodes)[openfiles[fd].node];
+		struct inode cur_inode = (cur_disk->inodes)[open_files[fd].node];
 		if (cur_inode.type != 'd'){ //if fd is not a directory file
 			errno = EPERM;
 			return -1;
 		}
 		else{
-			openfiles[fd] = NULL;
+			open_files[fd].node = -1;
+			open_files[fd].offset = 0;
+			open_files[fd].mode = -1;
 			return 0;
 		}
 	}
@@ -269,6 +275,11 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			open_files[next_fd].node = root;
 			open_files[next_fd].offset = 0;
 			open_files[next_fd].mode = O_RDONLY;
+			for (int i = 1; i < OPEN_FILE_MAX; i++){ //initialize the open file table
+				open_files[i].node = -1;
+				open_files[i].offset = 0;
+				open_files[i].mode = -1;
+			}
 			pwd_fd = next_fd;
 			if(increment_next_fd() == -1) {
 				return -1;
