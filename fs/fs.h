@@ -7,12 +7,14 @@
 
 #define	PATH_DELIM			"/"
 #define OPEN_FILE_MAX		100000
+#define FILE_INDEX_LENGTH	sizeof(int)
 #define FILE_NAME_LENGTH	12
-#define	FILE_ENTRY_SIZE		FILE_NAME_LENGTH+sizeof(int)
+#define	FILE_ENTRY_SIZE		FILE_INDEX_LENGTH+FILE_NAME_LENGTH
 
 
 struct disk_image {
 	int id;
+	int fd; /* fd for the disk image file*/
 	struct superblock sb;
 	struct inode *inodes;
 	struct disk_image *next;

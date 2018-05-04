@@ -17,6 +17,11 @@ struct open_file open_files[OPEN_FILE_MAX];
 int next_fd = 0;
 
 int increment_next_fd();
+void *load_offset(struct inode *node, int block_num, int block_rmd);
+void *load_data_block(int block_addr, int loc);
+void *load_indirect_block(int iblock_addr, int block_num, int loc);
+void *load_i2block(int i2block_addr, int *block_num, int loc);
+void *load_i3block(int i3block_addr, int *block_num, int loc);
 
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
@@ -61,13 +66,19 @@ int f_open(const char *path, const char *mode) {
 
 struct file_entry f_readdir(int fd) {
 	// test if the directory can be read
+	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
+
 	struct file_entry subfile;
-	int block_num = open_files[fd].offset/(cur_disk->sb.size/FILE_ENTRY_SIZE);
-	int block_rmd = open_files[fd].offset % (cur_disk->sb.size/FILE_ENTRY_SIZE);
+	int block_num = open_files[fd].offset / FILE_ENTRY_N;
+	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
 	if(block_rmd != 0) {
 		block_num++;
 	}
-	void *entry = locate_offset(open_files[fd].node, block_num, block_rmd);
+	void *target_block = load_block(open_files[fd].node, block_num);
+	subfile.node = *((int *) (target_block + block_rmd*FILE_ENTRY_SIZE));
+	strncpy(subfile.file_name, target_block + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, 
+		FILE_NAME_LENGTH);
+	return subfile;
 }
 
 int f_mount(const char *source, const char *target, int flags, void *data) {
@@ -109,6 +120,7 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 				return -1;
 			}
 
+			disks->fd = fd;
 			disks->next = 0;
 		} else { // not first disk
 
@@ -124,6 +136,7 @@ int f_umount(const char *target, int flags) {
 		while(disks) {
 			struct disk_image *current_disk = disks;
 			disks = disks->next;
+			close(current_disk->fd);
 			free(current_disk->inodes);
 			free(current_disk);
 			pwd = 0;
@@ -150,10 +163,77 @@ int increment_next_fd() {
 	}
 }
 
-void *locate_offset(struct inode *node, int block_num, int block_rmd) {
+void *load_block(struct inode *node, int block_num) {
+	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
+	int block_addr;
 
+	// when in direct blocks
+	if(block_num <= N_DBLOCKS) {
+		block_addr = node->dblocks[block_num-1];
+		return load_data_block(block_addr);
+	}
+	block_num -= N_DBLOCKS;
+
+	// when in indirect blocks
+	int i = 0;
+	while(block_num > POINTER_N && i < N_IBLOCKS) {
+		block_num -= POINTER_N;
+		i++;
+	}
+	if(i < N_IBLOCKS) {
+		return load_indirect_block(node->iblocks[i], block_num);
+	}
+
+	// when in i2block
+	if(block_num < POINTER_N*POINTER_N) {
+		return load_i2block(node->i2block, block_num);
+	}
+	block_num -= POINTER_N*POINTER_N;
+
+	// when in i3block
+	if(block_num < POINTER_N*POINTER_N*POINTER_N) {
+		return load_i3block(node->i3block, block_num);
+	}
+	errno = ENOENT;
+	return -1;
 }
 
+void *load_data_block(int block_addr) {
+	lseek(cur_disk->fd, 
+		OFFSET_START + (cur_disk->sb.data_offset + block_addr)*cur_disk->sb.size, 
+		SEEK_SET);
+	void *data_block = malloc(cur_disk->sb.size);
+	read(cur_disk->fd, data_block, cur_disk->sb.size);
+	return data_block;
+}
+
+void *load_indirect_block(int iblock_addr, int block_num) {
+	int block_addr = *((int *) load_in_block(iblock_addr, 
+		block_num*sizeof(int)));
+	return load_in_block(block_addr);
+}
+
+void *load_i2block(int i2block_addr, int *block_num) {
+	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
+	int i = 0;
+	while((*block_num) > POINTER_N) {
+		block_num -= POINTER_N;
+		i++;
+	}
+	int iblock_addr = *((int *) load_in_block(i2block_addr, i*sizeof(int)));
+	return load_indirect_block(iblock_addr, block_num);
+}
+
+void *load_i3block(int i3block_addr, int *block_num) {
+	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
+	int i = 0;
+	while((*block_num) > POINTER_N*POINTER_N) {
+		block_num -= POINTER_N*POINTER_N;
+		i++;
+	}
+	int i2block_addr = *((int *) load_in_block(i3block_addr, i*sizeof(int)));
+	return load_indirect_block(i2block_addr, block_num);
+}
 
 //****************************DEBUG FUNCTIONS*******************
 void print_disks() {
