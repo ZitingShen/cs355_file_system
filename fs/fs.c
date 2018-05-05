@@ -658,6 +658,63 @@ void write_data(struct data_block *db) {
 	write(cur_disk->fd, db->data, cur_disk->sb.size);
 }
 
+void add_free_block(int block_num){
+	int new_head = (cur_disk->sb).free_block_head;
+	int* temp_free_block;
+ /*read the free block*/
+	lseek(cur_disk->fd,
+		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
+		SEEK_SET);
+	read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
+	temp_free_block[temp_free_block[0]] = block_num;
+	temp_free_block[0] ++;
+	
+ /*write back the free block*/
+	lseek(cur_disk->fd,
+		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
+		SEEK_SET);
+	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
+
+ /*move head to the previous block if current block is full*/
+	if (temp_free_block[0] == 512){
+		(cur_disk->sb).free_block_head = new_head-1;
+	}
+}
+
+int find_free_block(){
+	int new_head = (cur_disk->sb).free_block_head;
+	int* temp_free_block;
+	int block_num;
+
+ /*read the free block*/
+	lseek(cur_disk->fd,
+		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
+		SEEK_SET);
+	read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
+
+ /*move head to the next block if current block is empty*/
+	if (temp_free_block[0] == 0){
+		new_head++;
+		(cur_disk->sb).free_block_head = new_head;
+  /*read the next free block*/
+		lseek(cur_disk->fd,
+			OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
+			SEEK_SET);
+		read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
+	}
+
+	block_num = temp_free_block[temp_free_block[0]-1];
+	temp_free_block[0] --;
+	
+ /*write back the free block*/
+	lseek(cur_disk->fd,
+		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
+		SEEK_SET);
+	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
+
+	return block_num;
+}
+
 //****************************UTILITY FUNCTIONS*****************
 
 int strend(const char *s, const char *t) {
