@@ -285,7 +285,7 @@ int f_opendir(const char *path) {
 	}
 
 	int return_fd = next_fd;
-	open_files[return_fd].mode = mode_binary;
+	open_files[return_fd].mode = O_RDONLY;
 	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
 	if(increment_next_fd() == -1) {
 		free(path_copy);
