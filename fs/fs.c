@@ -101,7 +101,6 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 	else{
 		size_t rem_size = size * nitems; //total read size
 		int file_offset = open_files[fd].offset; 
-		struct inode cur_inode = cur_disk[open_files[fd].node];
 		int cur_out_offset = 0;
 
 		int num_block = rem_size / (cur_disk->sb).size;
@@ -109,16 +108,18 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 				num_block ++;
 			}
 
-		char * out_buffer[num_block * (cur_disk->sb).size + 1];
 		struct data_block temp_data_block;
 		
-		if (file_offset != 0){//if there is offset, need to deal with the first data block to be read
-			int first_block = file_offset / (cur_disk->sb).size;
+		int first_block = file_offset / (cur_disk->sb).size;
+
+		/*if there is offset, need to deal with the first data block to be read*/
+		if (file_offset != 0){
 			int first_block_rem = file_offset % (cur_disk->sb).size;
 			if (first_block_rem != 0){
-				temp_data_block = load_block(open_files[fd].node, i);
-				strcmp(out_buffer + cur_out_offset, (char *)((temp_data_block -> data) + ((cur_disk->sb).size)-first_block_rem), first_block_rem);
+				temp_data_block = load_block(open_files[fd].node, first_block);
+				strcpy(ptr + cur_out_offset, (char *)((temp_data_block.data) + ((cur_disk->sb).size)-first_block_rem));
 				cur_out_offset += first_block_rem;
+				first_block ++;
 			}
 		}
 
@@ -127,11 +128,10 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 			if (rem_size <= 0) break;
 			rem_size -= (cur_disk->sb).size;
 			temp_data_block = load_block(open_files[fd].node, i);
-			strcmp(out_buffer + cur_out_offset, temp_data_block -> data, (cur_disk->sb).size);
+			strcpy(ptr + cur_out_offset, temp_data_block.data);
 			cur_out_offset += (cur_disk->sb).size;
-			free(temp_data_block->data);
+			free(temp_data_block.data);
 		}
-		strcmp(ptr, out_buffer, size * nitems);
 		return 0;
 	}
 }
