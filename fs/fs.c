@@ -32,6 +32,9 @@ void write_superblock();
 void write_inode(int node);
 void write_data(struct data_block *db);
 
+void add_free_block(int block_num);
+int find_free_block();
+
 int strend(const char *s, const char *t);
 
 //***************************LIBRARY FUNCTIONS******************
@@ -660,7 +663,7 @@ void write_data(struct data_block *db) {
 
 void add_free_block(int block_num){
 	int new_head = (cur_disk->sb).free_block_head;
-	int* temp_free_block;
+	int* temp_free_block = (int *) malloc((cur_disk->sb).size);
  /*read the free block*/
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
@@ -668,7 +671,7 @@ void add_free_block(int block_num){
 	read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
 	temp_free_block[temp_free_block[0]] = block_num;
 	temp_free_block[0] ++;
-	
+
  /*write back the free block*/
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
@@ -679,11 +682,12 @@ void add_free_block(int block_num){
 	if (temp_free_block[0] == 512){
 		(cur_disk->sb).free_block_head = new_head-1;
 	}
+	free(temp_free_block);
 }
 
 int find_free_block(){
 	int new_head = (cur_disk->sb).free_block_head;
-	int* temp_free_block;
+	int* temp_free_block = (int *) malloc((cur_disk->sb).size);
 	int block_num;
 
  /*read the free block*/
@@ -705,12 +709,13 @@ int find_free_block(){
 
 	block_num = temp_free_block[temp_free_block[0]-1];
 	temp_free_block[0] --;
-	
+
  /*write back the free block*/
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
 		SEEK_SET);
 	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
+	free(temp_free_block);
 
 	return block_num;
 }
