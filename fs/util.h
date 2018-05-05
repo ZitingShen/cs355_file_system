@@ -15,6 +15,10 @@
 #define PERMISSION_X		1
 #define PERMISSION_DEFAULT	PERMISSION_R | PERMISSION_W
 
+#define TYPE_DIRECTORY		'd'
+#define TYPE_NORMAL			'-'
+#define TYPE_LINK			'l'
+
 struct superblock {
 	int size; /* size of blocks in bytes */
 	int inode_offset; /* offset of inode region in blocks */

@@ -20,7 +20,7 @@ int next_fd = 0;
 
 int increment_next_fd();
 int convert_mode(const char* mode);
-int create_file(int dir_fd, char *filename, int permission);
+int create_file(int dir_fd, char *filename, int permission, char type);
 
 struct data_block load_block(int node_addr, int block_num);
 struct data_block load_data_block(int block_addr);
@@ -64,7 +64,7 @@ int f_open(const char *path, const char *mode) {
 		}
 		if(subfile.node < 0) {
 			if(strend(path, seg) && (mode_binary & O_CREAT)) {
-				if(create_file(next_fd, seg, PERMISSION_DEFAULT) == -1) {
+				if(create_file(next_fd, seg, PERMISSION_DEFAULT, TYPE_NORMAL) == -1) {
 					free(path_copy);
 					return -1;
 				}
@@ -249,7 +249,50 @@ int f_stat(int fd, struct stat *buf){
 }
 
 int f_opendir(const char *path) {
-	return 0;
+	char *path_copy = malloc(strlen(path));
+	strcpy(path_copy, path);
+	char *seg = strtok(path_copy, PATH_DELIM);
+	if((*path) == PATH_ROOT) { // absolute path
+		open_files[next_fd].node = root;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	} else { // relative path
+		open_files[next_fd].node = open_files[pwd_fd].node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	}
+
+	while(seg) {
+		if(cur_disk->inodes[open_files[next_fd].node].type != 'd') {
+			errno = ENOENT;
+			free(path_copy);
+			return -1;
+		}
+		struct file_entry subfile = f_readdir(next_fd);
+		while(subfile.node >=0 && strncmp(seg, subfile.file_name, FILE_NAME_LENGTH)) {
+			subfile = f_readdir(next_fd);
+		}
+		if(subfile.node < 0) {
+			free(path_copy);
+			errno = ENOENT;
+			return -1;
+		}
+
+		open_files[next_fd].node = subfile.node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+		seg = strtok(NULL, PATH_DELIM);
+	}
+
+	int return_fd = next_fd;
+	open_files[return_fd].mode = mode_binary;
+	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
+	if(increment_next_fd() == -1) {
+		free(path_copy);
+		return -1;
+	}
+	free(path_copy);
+	return return_fd;
 }
 
 struct file_entry f_readdir(int fd) {
@@ -299,6 +342,57 @@ int f_closedir(int fd){
 			return 0;
 		}
 	}
+}
+
+int f_mkdir(const char *path, int permission) {
+	if (permission < 0) {
+		errno = EINVAL;
+		return -1;
+	}
+	char *path_copy = malloc(strlen(path));
+	strcpy(path_copy, path);
+	char *seg = strtok(path_copy, PATH_DELIM);
+	if((*path) == PATH_ROOT) { // absolute path
+		open_files[next_fd].node = root;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	} else { // relative path
+		open_files[next_fd].node = open_files[pwd_fd].node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+	}
+
+	while(seg) {
+		if(cur_disk->inodes[open_files[next_fd].node].type != 'd') {
+			errno = ENOENT;
+			free(path_copy);
+			return -1;
+		}
+		struct file_entry subfile = f_readdir(next_fd);
+		while(subfile.node >=0 && strncmp(seg, subfile.file_name, FILE_NAME_LENGTH)) {
+			subfile = f_readdir(next_fd);
+		}
+		if(subfile.node < 0) {
+			if(strend(path, seg)) {
+				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) == -1) {
+					free(path_copy);
+					return -1;
+				}
+			} else {
+				free(path_copy);
+				errno = ENOENT;
+				return -1;
+			}
+		}
+
+		open_files[next_fd].node = subfile.node;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+		seg = strtok(NULL, PATH_DELIM);
+	}
+
+	free(path_copy);
+	return 0;
 }
 
 int f_mount(const char *source, const char *target, int flags, void *data) {
@@ -406,7 +500,7 @@ int convert_mode(const char* mode) {
 	return -1;
 }
 
-int create_file(int dir_fd, char *filename, int permission) {
+int create_file(int dir_fd, char *filename, int permission, char type) {
 	int new_inode = cur_disk->sb.free_inode;
 
 	// check if more inode could be added
@@ -423,7 +517,7 @@ int create_file(int dir_fd, char *filename, int permission) {
 	cur_disk->inodes[new_inode].protect = 0;
 	cur_disk->inodes[new_inode].parent = open_files[dir_fd].node;
 	cur_disk->inodes[new_inode].permission = permission;
-	cur_disk->inodes[new_inode].type = '-';
+	cur_disk->inodes[new_inode].type = type;
 	cur_disk->inodes[new_inode].nlink = 1;
 	cur_disk->inodes[new_inode].size = 0;
 	cur_disk->inodes[new_inode].uid = uid;

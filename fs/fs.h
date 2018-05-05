@@ -81,7 +81,7 @@ struct file_entry f_readdir(int fd);
 
 int f_closedir(int fd);
 
-int f_mkdir(const char *path, mode_t mode);
+int f_mkdir(const char *path, int permission);
 
 int f_rmdir(const char *path);
 
