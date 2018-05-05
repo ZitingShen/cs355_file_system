@@ -10,6 +10,11 @@
 #define N_DBLOCKS 			10
 #define N_IBLOCKS 			4
 
+#define PERMISSION_R		4
+#define	PERMISSION_W		2
+#define PERMISSION_X		1
+#define PERMISSION_DEFAULT	PERMISSION_R | PERMISSION_W
+
 struct superblock {
 	int size; /* size of blocks in bytes */
 	int inode_offset; /* offset of inode region in blocks */
@@ -20,6 +25,7 @@ struct superblock {
 	first int is the number of block indices stored in the 
 	block. The rest are all block indices.
 	******************************************************/
+	int free_block_head; /* head of the free block management region */ 
 	int swap_offset; /* swap region offset in blocks */
 	int free_inode; /* head of free inode list, index */
 };
@@ -49,9 +55,6 @@ struct inode {
 	-2: nobody
 	https://en.wikipedia.org/wiki/User_identifier
 	***************************/
-	int ctime; /* change time */
-	int mtime; /* modification time */
-	int atime; /* access time */
 
 	int dblocks[N_DBLOCKS]; /* pointers to data blocks */
 	int iblocks[N_IBLOCKS]; /* pointers to indirect blocks */

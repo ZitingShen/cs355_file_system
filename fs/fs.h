@@ -12,7 +12,6 @@
 #define FILE_NAME_LENGTH	12
 #define	FILE_ENTRY_SIZE		FILE_INDEX_LENGTH+FILE_NAME_LENGTH
 
-
 struct disk_image {
 	int id;
 	int fd; /* fd for the disk image file*/
@@ -30,7 +29,7 @@ struct open_file {
 	**************************************************/
 	int mode;
 	/**************************************************
-	┌─────────────┬───────────────────────────────┐
+	  ┌─────────────┬───────────────────────────────┐
       │f_open() mode│ int mode                      │
       ├─────────────┼───────────────────────────────┤
       │     r       │ O_RDONLY                      │

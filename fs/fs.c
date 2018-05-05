@@ -19,9 +19,8 @@ struct open_file open_files[OPEN_FILE_MAX];
 int next_fd = 0;
 
 int increment_next_fd();
-void set_file_mode(int fd, const char* mode);
-void set_inode_mode(int node, const char* mode);
-int create_file(int dir_fd, char *filename, const char *mode);
+int convert_mode(const char* mode);
+int create_file(int dir_fd, char *filename, int permission);
 
 struct data_block load_block(int node_addr, int block_num);
 struct data_block load_data_block(int block_addr);
@@ -37,6 +36,9 @@ int strend(const char *s, const char *t);
 
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
+	int mode_binary = convert_mode(mode);
+	if (mode_binary < 0)
+		return -1;
 	char *path_copy = malloc(strlen(path));
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
@@ -61,8 +63,8 @@ int f_open(const char *path, const char *mode) {
 			subfile = f_readdir(next_fd);
 		}
 		if(subfile.node < 0) {
-			if(strend(path, seg)) {
-				if(create_file(next_fd, seg, mode) == -1) {
+			if(strend(path, seg) && (mode_binary & O_CREAT)) {
+				if(create_file(next_fd, seg, PERMISSION_DEFAULT) == -1) {
 					free(path_copy);
 					return -1;
 				}
@@ -80,7 +82,8 @@ int f_open(const char *path, const char *mode) {
 	}
 
 	int return_fd = next_fd;
-	set_file_mode(return_fd, mode);
+	open_files[return_fd].mode = mode_binary;
+	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
 	if(increment_next_fd() == -1) {
 		free(path_copy);
 		return -1;
@@ -200,6 +203,10 @@ int f_stat(int fd, struct stat *buf){
 	}
 }
 
+int f_opendir(const char *path) {
+	return 0;
+}
+
 struct file_entry f_readdir(int fd) {
 	struct file_entry subfile;
 	subfile.node = -1;
@@ -222,8 +229,6 @@ struct file_entry f_readdir(int fd) {
 	free(target_block.data);
 
 	open_files[fd].offset++;
-	cur_disk->inodes[open_files[fd].node].atime = time(0);
-	write_inode(open_files[fd].node);
 	return subfile;
 }
 
@@ -338,39 +343,25 @@ int increment_next_fd() {
 	}
 }
 
-void set_file_mode(int fd, const char* mode) {
+int convert_mode(const char* mode) {
 	if(strcmp(mode, "r") == 0) {
-		open_files[fd].mode = O_RDONLY;
+		return O_RDONLY;
 	} else if(strcmp(mode, "w") == 0) {
-		open_files[fd].mode = O_WRONLY | O_CREAT | O_TRUNC;
+		return O_WRONLY | O_CREAT | O_TRUNC;
 	} else if(strcmp(mode, "a") == 0) {
-		open_files[fd].mode = O_WRONLY | O_CREAT | O_APPEND;
+		return O_WRONLY | O_CREAT | O_APPEND;
 	} else if(strcmp(mode, "r+") == 0) {
-		open_files[fd].mode = O_RDWR;
+		return O_RDWR;
 	} else if(strcmp(mode, "w+") == 0) {
-		open_files[fd].mode = O_RDWR | O_CREAT | O_TRUNC;
+		return O_RDWR | O_CREAT | O_TRUNC;
 	} else if(strcmp(mode, "a+") == 0) {
-		open_files[fd].mode = O_RDWR | O_CREAT | O_APPEND;
+		return O_RDWR | O_CREAT | O_APPEND;
 	}
+	errno = EINVAL;
+	return -1;
 }
 
-void set_inode_mode(int node, const char* mode) {
-	if(strcmp(mode, "r") == 0) {
-		cur_disk->inodes[node].permission = O_RDONLY;
-	} else if(strcmp(mode, "w") == 0) {
-		cur_disk->inodes[node].permission = O_WRONLY | O_CREAT | O_TRUNC;
-	} else if(strcmp(mode, "a") == 0) {
-		cur_disk->inodes[node].permission = O_WRONLY | O_CREAT | O_APPEND;
-	} else if(strcmp(mode, "r+") == 0) {
-		cur_disk->inodes[node].permission = O_RDWR;
-	} else if(strcmp(mode, "w+") == 0) {
-		cur_disk->inodes[node].permission = O_RDWR | O_CREAT | O_TRUNC;
-	} else if(strcmp(mode, "a+") == 0) {
-		cur_disk->inodes[node].permission = O_RDWR | O_CREAT | O_APPEND;
-	}
-}
-
-int create_file(int dir_fd, char *filename, const char *mode) {
+int create_file(int dir_fd, char *filename, int permission) {
 	int new_inode = cur_disk->sb.free_inode;
 
 	// check if more inode could be added
@@ -386,29 +377,40 @@ int create_file(int dir_fd, char *filename, const char *mode) {
 	cur_disk->inodes[new_inode].next_inode = 0;
 	cur_disk->inodes[new_inode].protect = 0;
 	cur_disk->inodes[new_inode].parent = open_files[dir_fd].node;
-	set_inode_mode(new_inode, mode);
+	cur_disk->inodes[new_inode].permission = permission;
 	cur_disk->inodes[new_inode].type = '-';
 	cur_disk->inodes[new_inode].nlink = 1;
 	cur_disk->inodes[new_inode].size = 0;
 	cur_disk->inodes[new_inode].uid = uid;
 	cur_disk->inodes[new_inode].gid = uid;
-	cur_disk->inodes[new_inode].ctime = time(0);
-	cur_disk->inodes[new_inode].mtime = time(0);
-	cur_disk->inodes[new_inode].atime = time(0);
-	write_inode(new_inode); // write inode back to disk
+	for(int i = 0; i < N_DBLOCKS; i++)
+		cur_disk->inodes[new_inode].dblocks[i] = 0;
+	for(int i = 0; i < N_IBLOCKS; i++)
+		cur_disk->inodes[new_inode].iblocks[i] = 0;
+	cur_disk->inodes[new_inode].i2block = 0;
+	cur_disk->inodes[new_inode].i3block = 0;
+	write_inode(new_inode); // write child inode back to disk
+
+	cur_disk->inodes[open_files[dir_fd].node].size--;
+	write_inode(open_files[dir_fd].node); // write child inode back to disk
 
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
 	int block_num = open_files[dir_fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[dir_fd].offset % FILE_ENTRY_N;
-	if(block_rmd != 0) {
+	struct data_block target_block;
+	if(block_rmd != 0) { // no need to create a new data block
 		block_num++;
+		target_block = load_block(open_files[dir_fd].node, block_num);
+	} else { // need to create a new data block
+		target_block.data = malloc(cur_disk->sb.size);
+		target_block.data_addr = find_free_block();
 	}
-	struct data_block target_block = load_block(open_files[dir_fd].node, block_num);
 	*((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE)) = new_inode;
 	strncpy(target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, filename,
 		FILE_NAME_LENGTH);
 	write_data(&target_block); // write data back to disk
 	free(target_block.data);
+
 
 	open_files[dir_fd].offset++;
 	return 0;
@@ -563,9 +565,6 @@ void print_disk(struct disk_image *disk) {
 			printf("	size: %d\n", current->size);
 			printf("	uid: %d\n", current->uid);
 			printf("	gid: %d\n", current->gid);
-			printf("	ctime: %d\n", current->ctime);
-			printf("	mtime: %d\n", current->mtime);
-			printf("	atime: %d\n", current->atime);
 			printf("	dblocks: ");
 			for(int i = 0; i < N_DBLOCKS; i++) {
 				printf("%d ", current->dblocks[i]);

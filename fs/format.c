@@ -69,6 +69,7 @@ int format(const char *file_name, int file_size) {
 	if (free_block_reserve_num % (POINTER_N-1) != 0)
 		free_block_reserve_num++;
 	sb.free_block_offset = free_block_num - free_block_reserve_num;
+	sb.free_block_head = sb.free_block_offset;
 	sb.swap_offset = free_block_num;
 	sb.free_inode = 1;
 
@@ -84,15 +85,12 @@ int format(const char *file_name, int file_size) {
 	node.protect = 0;
 
 	node.parent = -1;
-	node.permission = 7;
+	node.permission = PERMISSION_DEFAULT;
 	node.type = 'd';
 	node.nlink = 1;
 	node.size = 0;
 	node.uid = 0;
 	node.gid = 0;
-	node.ctime = time(0);
-	node.mtime = time(0);
-	node.atime = time(0);
 	for(int i = 0; i < N_DBLOCKS; i++)
 		node.dblocks[i] = 0;
 	for(int i = 0; i < N_IBLOCKS; i++)
