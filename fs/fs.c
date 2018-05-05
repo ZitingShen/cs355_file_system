@@ -109,7 +109,6 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 			}
 
 		struct data_block temp_data_block;
-		
 		int first_block = file_offset / (cur_disk->sb).size;
 
 		/*if there is offset, need to deal with the first data block to be read*/
@@ -136,6 +135,8 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 	}
 }
 
+
+
 /*can also close directory file with this function call*/
 int f_close(int fd){
 	if (fd > OPEN_FILE_MAX){ //fd overflow
@@ -153,7 +154,6 @@ int f_close(int fd){
 		return 0;
 	}
 }
-
 
 //success returns zero
 int f_seek(int fd, long offset, int whence){
