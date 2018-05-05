@@ -2,6 +2,8 @@
 #include "fs_debug.h"
 #include <stdio.h>
 #include <assert.h> 
+int pwd_fd;
+int uid;
 
 void test_mount_umount() {
 	int result;

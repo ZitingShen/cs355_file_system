@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define PATH_ROOT			'/'
 #define	PATH_DELIM			"/"
 #define OPEN_FILE_MAX		100000
 #define FILE_INDEX_LENGTH	sizeof(int)
@@ -55,7 +56,7 @@ struct file_entry {
 struct data_block {
 	void *data;
 	int data_addr;
-}
+};
 
 /* Return file descriptor on success. -1 on failure and set errno. */
 int f_open(const char *path, const char *mode);
