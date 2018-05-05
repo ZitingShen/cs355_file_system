@@ -22,6 +22,8 @@ int increment_next_fd();
 int convert_mode(const char* mode);
 struct file_entry find_subfile(int dir_fd, char *file_name);
 int create_file(int dir_fd, char *filename, int permission, char type);
+int remove_file(int dir_fd, struct file_entry *file);
+int remove_directory(int dir_fd);
 
 struct data_block load_block(int node_addr, int block_num);
 struct data_block load_data_block(int block_addr);
@@ -396,11 +398,12 @@ int f_mkdir(const char *path, int permission) {
 
 int f_rmdir(const char *path) {
 	int fd = f_opendir(path);
-	remove_directory(fd);
+	if(fd < 0)
+		return -1;
+	if(remove_directory(fd) < 0)
+		return -1;
 	f_closedir(fd);
-	// find all files in the directory
-	// f_rmdir_helper all subdirectories
-	// f_remove_helper all subfiles
+	return 0;
 }
 
 int f_mount(const char *source, const char *target, int flags, void *data) {
@@ -595,7 +598,7 @@ int remove_directory(int dir_fd) {
 				open_files[next_fd].offset = 0;
 				open_files[next_fd].mode = O_RDONLY;
 				int target_fd = next_fd;
-				if(increment_next_fd() == -1) {
+				if(increment_next_fd() < 0) {
 					return -1;
 				}
 				remove_directory(target_fd);
