@@ -82,7 +82,48 @@ void test_f_seek() {
 }
 
 void test_f_rewind() {
+	int result;
+	int fd;
+	struct file_entry subfile;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /bin");
+	result = f_mkdir("/bin", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open root directory");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Read /");
+	printf("%s\n", "Should successfully read /usr");
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+	print_file_entry(&subfile);
+
+	printf("%s\n", "Read /");
+	printf("%s\n", "Should successfully read /bin");
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+	print_file_entry(&subfile);
+
+	printf("%s\n", "Seek the offset of / to 1");
+	f_rewind(fd);
+	print_fd(fd);
+
+	printf("%s\n", "Read /");
+	printf("%s\n", "Should successfully read /usr");
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+	print_file_entry(&subfile);
 }
 
 void test_f_stat() {
@@ -281,7 +322,11 @@ int main() {
 	// test_f_opendir_relative();
 	// printf("\n");
 
-	printf("%s\n", "test fseek root directory");
-	test_f_seek();
+	// printf("%s\n", "test seek root directory");
+	// test_f_seek();
+	// printf("\n");
+
+	printf("%s\n", "test rewind root directory");
+	test_f_rewind();
 	printf("\n");
 }

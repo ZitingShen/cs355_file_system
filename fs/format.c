@@ -45,7 +45,6 @@ int format(const char *file_name, int file_size) {
 	if(fd == -1) {
 		return -1;
 	}
-	ftruncate(fd, file_size);
 
 	char boot_block[OFFSET_SUPERBLOCK - OFFSET_BOOT];
 	memset(&boot_block, BOOT, OFFSET_SUPERBLOCK - OFFSET_BOOT);
@@ -118,6 +117,16 @@ int format(const char *file_name, int file_size) {
 			return -1;
 		}
 	}
+
+	void *empty_block = malloc(sb.size);
+	bzero(empty_block, sb.size);
+	for(int i = 0; i < free_block_num; i++) {
+		out = write(fd, empty_block, sb.size);
+		if(out != sb.size) {
+			return -1;
+		}
+	}
+	free(empty_block);
 
 	// store free data block indices
 	int offset = OFFSET_START + sb.swap_offset*BLOCK_SIZE;
