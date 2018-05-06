@@ -831,7 +831,7 @@ int* which_to_find_free (size_t file_block, int block_num){
 	}
 	/*if in doubly indirect block*/
 	else if (block_num <  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N - 1){
-		int j = block_num - (N_IBLOCKS + POINTER_N * N_DBLOCKS); // block index relative to the start of i2block
+		int j = block_num - (N_DBLOCKS + POINTER_N * N_IBLOCKS); // block index relative to the start of i2block
 		int i = 0;
 		while(j > POINTER_N) {
 			j-= POINTER_N;
@@ -851,7 +851,7 @@ int* which_to_find_free (size_t file_block, int block_num){
 		return add_free;
 	}
 	/*if in triply indirect block*/
-	else if (block_num <  N_IBLOCKS + POINTER_N * N_DBLOCKS + POINTER_N * POINTER_N 
+	else if (block_num <  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N 
 		+ POINTER_N * POINTER_N *POINTER_N - 1){
 		int total_until_i3 = N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N;
 		int j = block_num - total_until_i3;
