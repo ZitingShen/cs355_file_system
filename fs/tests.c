@@ -127,7 +127,29 @@ void test_f_rewind() {
 }
 
 void test_f_stat() {
+	int result;
+	int fd;
+	struct stat buf;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr/bin");
+	result = f_mkdir("/usr/bin", PERMISSION_DEFAULT);
+	assert(result == 0);
+	
+	printf("%s\n", "Open /usr/bin");
+	fd = f_opendir("/usr/bin");
+	assert(fd >= 0);
+	
+	printf("%s\n", "Stat /usr/bin");
+	result = f_stat(fd, &buf);
+	assert(result >= 0);
 }
 
 void test_f_remove() {
@@ -326,7 +348,11 @@ int main() {
 	// test_f_seek();
 	// printf("\n");
 
+	// printf("%s\n", "test rewind root directory");
+	// test_f_rewind();
+	// printf("\n");
+
 	printf("%s\n", "test rewind root directory");
-	test_f_rewind();
+	test_f_stat();
 	printf("\n");
 }

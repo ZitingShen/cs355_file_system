@@ -222,32 +222,21 @@ int f_stat(int fd, struct stat *buf){
 		return -1;
 	}
 	else{
-		int file_node = open_files[fd].node;
-		int file_size = ((cur_disk -> inodes)[file_node]).size;
-		int file_link = ((cur_disk -> inodes)[file_node]).nlink;
-		char* file_permission = "";
-		int cur_mode = open_files[fd].mode;
-
-		strcat(file_permission, &(((cur_disk -> inodes)[file_node]).type)); //file type
-		if (cur_mode && O_RDONLY){ 
-			strcat(file_permission, "r");
+		buf->st_dev = (uid_t) cur_disk->id;
+		buf->st_ino = (ino_t) open_files[fd].node;
+		buf->st_mode = (mode_t) cur_disk->inodes[open_files[fd].node].permission;
+		if(cur_disk->inodes[open_files[fd].node].type == TYPE_DIRECTORY) {
+			buf->st_mode += 10;
 		}
-		else{
-			strcat(file_permission, "-");
+		buf->st_nlink = (nlink_t) cur_disk->inodes[open_files[fd].node].nlink;
+		buf->st_uid = (uid_t) cur_disk->inodes[open_files[fd].node].uid;
+		buf->st_gid = (gid_t) cur_disk->inodes[open_files[fd].node].gid;
+		buf->st_size = (off_t) cur_disk->inodes[open_files[fd].node].size;
+		buf->st_blksize = (blksize_t) cur_disk->sb.size;
+		buf->st_blocks = (blkcnt_t) buf->st_size/buf->st_blksize;
+		if(buf->st_size % buf->st_blksize != 0) {
+			buf->st_blocks++;
 		}
-		if (cur_mode && O_WRONLY){
-			strcat(file_permission, "w");
-		}
-		else{
-			strcat(file_permission, "-");
-		}
-
-		printf("File information:\n");
-		printf("---------------------------\n");
-		printf("File Size:\t\t\t%d\n", file_size);
-		printf("Number of Links:\t\t%d\n", file_link);
-		printf("File inode:\t\t\t%d\n", file_node);
-		printf("File Permissions:\t\t%s\n", file_permission);
 		return 0;
 	}
 }
