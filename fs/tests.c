@@ -73,8 +73,28 @@ void test_f_open_relative() {
 	print_fd(fd);
 }
 
-void test_f_open_after_close() {
-	// TODO
+void test_f_open_existing() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Close /design.txt");
+	result = f_close(fd);
+	assert(fd == 0);
+	print_fd(fd);
+
+	printf("%s\n", "Open existing /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
 }
 
 void test_f_close() {
@@ -437,7 +457,11 @@ int main() {
 	// test_f_open_relative();
 	// printf("\n");
 
-	printf("%s\n", "test close /design.txt after opening it");
-	test_f_close();
+	// printf("%s\n", "test close /design.txt after opening it");
+	// test_f_close();
+	// printf("\n");
+
+	printf("%s\n", "test open existing /design.txt after creating it");
+	test_f_open_existing();
 	printf("\n");
 }
