@@ -20,19 +20,143 @@ void test_mount_umount() {
 }
 
 void test_f_open() {
+	int result;
+	int fd;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_nested() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	fd = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(fd >= 0);
+
+	printf("%s\n", "Create and open /usr/design.txt");
+	fd = f_open("/usr/design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_relative() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open /usr");
+	fd = f_opendir("/usr");
+	assert(fd >= 0);
+	pwd_fd = fd;
+
+	printf("%s\n", "Create and open /usr/design.txt by its relative path \'design.txt\'");
+	fd = f_open("design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_existing() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Close /design.txt");
+	result = f_close(fd);
+	assert(fd == 0);
+	print_fd(fd);
+
+	printf("%s\n", "Open existing /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
 }
 
 void test_f_close() {
+	int result;
+	int fd;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Close /design.txt");
+	result = f_close(fd);
+	assert(fd == 0);
+	print_fd(fd);
 }
 
 void test_f_read() {
+	int result;
+	int fd, fd_usr;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open /usr");
+	fd_usr = f_opendir("/usr");
+	assert(fd_usr >= 0);
+
+	printf("%s\n", "Open /");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	
+	printf("%s\n", "Read an int from /");
+	int i;
+	result = f_read(&i, sizeof(int), 1, fd);
+	printf("%d\n", result);
+	assert(result == sizeof(int));
+	
+	printf("i should equal to the inode index in the following file entry:\n");
+	printf("i: %d\n", i);
+	print_fd(fd_usr);
+}
+
+void test_f_read_more() {
+	// TODO
 }
 
 void test_f_write() {
-
+	// TODO
 }
 
 void test_f_seek() {
@@ -153,7 +277,7 @@ void test_f_stat() {
 }
 
 void test_f_remove() {
-
+	// TODO
 }
 
 void test_f_opendir_root() {
@@ -308,7 +432,7 @@ void test_f_mkdir() {
 }
 
 void test_f_rmdir() {
-
+	// TODO
 }
 
 int main() {
@@ -352,7 +476,32 @@ int main() {
 	// test_f_rewind();
 	// printf("\n");
 
-	printf("%s\n", "test rewind root directory");
-	test_f_stat();
+	// printf("%s\n", "test rewind root directory");
+	// test_f_stat();
+	// printf("\n");
+
+	// printf("%s\n", "test create and open /design.txt");
+	// test_f_open();
+	// printf("\n"); 
+
+	// printf("%s\n", "test create and open /usr/design.txt");
+	// test_f_open_nested();
+	// printf("\n");
+
+	// printf("%s\n", "test create and open /usr/design.txt by its relative path");
+	// test_f_open_relative();
+	// printf("\n");
+
+	// printf("%s\n", "test close /design.txt after opening it");
+	// test_f_close();
+	// printf("\n");
+
+	// printf("%s\n", "test open existing /design.txt after creating it");
+	// test_f_open_existing();
+	// printf("\n");
+
+	printf("%s\n", "Create /usr, and read an int from /.");
+	printf("%s\n", "The int should be the inode index of /usr");
+	test_f_read();
 	printf("\n");
 }
