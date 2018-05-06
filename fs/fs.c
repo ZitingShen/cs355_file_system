@@ -195,6 +195,9 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 
 				if (rem_size < copy_size) copy_size = rem_size;
 				temp_data_block = load_block(open_files[fd].node, first_block);
+				//if(temp_data_block.data == 0);
+					//set errno???
+					//return -1;???
 				strncpy((char *)((temp_data_block.data) + first_block_rem), ptr + cur_out_offset, copy_size);
 				write_block(open_files[fd].node, first_block, temp_data_block.data);
 
@@ -239,8 +242,6 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		return nitems * size;
 	}
 }
-
-
 
 /*can also close directory file with this function call*/
 int f_close(int fd){
