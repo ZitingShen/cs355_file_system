@@ -800,15 +800,19 @@ for entry in the corresponding level block.
 int* which_to_find_free (size_t file_block, int block_num){
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int *add_free= malloc(4 * sizeof(int));
+	add_free[0] = 0;
+	add_free[1] = 0;
+	add_free[2] = 0;
+	add_free[3] = 0;
 	/*if in direct block*/
-	if (block_num < N_IBLOCKS){
+	if (block_num < N_DBLOCKS - 1){
 		if (file_block < block_num){
-		add_free[0] = 1;
+			add_free[0] = 1;
 		}
 		return add_free;
 	}
 	/*if in indirect block*/
-	else if (block_num < N_IBLOCKS + POINTER_N * N_DBLOCKS){
+	else if (block_num < N_DBLOCKS + POINTER_N * N_IBLOCKS - 1){
 		int j = block_num - N_IBLOCKS;
 		int i = 0;
 		while(j > POINTER_N) {
@@ -826,7 +830,7 @@ int* which_to_find_free (size_t file_block, int block_num){
 		return add_free;
 	}
 	/*if in doubly indirect block*/
-	else if (block_num <  N_IBLOCKS + POINTER_N * N_DBLOCKS + POINTER_N * POINTER_N){
+	else if (block_num <  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N - 1){
 		int j = block_num - (N_IBLOCKS + POINTER_N * N_DBLOCKS); // block index relative to the start of i2block
 		int i = 0;
 		while(j > POINTER_N) {
@@ -835,11 +839,11 @@ int* which_to_find_free (size_t file_block, int block_num){
 		}
 		//j is now block index in 1st level block
 		//i is index in 2nd level block
-		if (file_block <  N_IBLOCKS +  N_DBLOCKS * POINTER_N + i * POINTER_N + j){
+		if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N + i * POINTER_N + j){
 			add_free[0] = 1;
-			if (file_block <  N_IBLOCKS +  N_DBLOCKS * POINTER_N + i * POINTER_N){
+			if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N + i * POINTER_N){
 				add_free[1] = 1;
-				if (file_block <  N_IBLOCKS +  N_DBLOCKS * POINTER_N){
+				if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N){
 					add_free[2] = 1;
 				}
 			}
@@ -848,8 +852,8 @@ int* which_to_find_free (size_t file_block, int block_num){
 	}
 	/*if in triply indirect block*/
 	else if (block_num <  N_IBLOCKS + POINTER_N * N_DBLOCKS + POINTER_N * POINTER_N 
-		+ POINTER_N * POINTER_N *POINTER_N){
-		int total_until_i3 = N_IBLOCKS + POINTER_N * N_DBLOCKS + POINTER_N * POINTER_N;
+		+ POINTER_N * POINTER_N *POINTER_N - 1){
+		int total_until_i3 = N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N;
 		int j = block_num - total_until_i3;
 		int i = 0;
 		while(j > POINTER_N * POINTER_N) {
