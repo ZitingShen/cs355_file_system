@@ -78,7 +78,22 @@ void test_f_open_after_close() {
 }
 
 void test_f_close() {
-	// TODO
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Close /design.txt");
+	result = f_close(fd);
+	assert(fd == 0);
+	print_fd(fd);
 }
 
 void test_f_read() {
