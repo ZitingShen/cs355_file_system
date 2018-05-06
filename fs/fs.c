@@ -66,11 +66,10 @@ int f_open(const char *path, const char *mode) {
 		subfile = find_subfile(next_fd, seg);
 		if(subfile.node < 0) {
 			if(strend(path, seg) && (mode_binary & O_CREAT)) {
-				if(create_file(next_fd, seg, PERMISSION_DEFAULT, TYPE_NORMAL) < 0) {
+				subfile.node = create_file(next_fd, seg, PERMISSION_DEFAULT, TYPE_NORMAL);
+				if(subfile.node < 0) {
 					free(path_copy);
 					return -1;
-				} else {
-					return 0;
 				}
 			} else {
 				free(path_copy);
@@ -583,7 +582,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 
 	cur_disk->inodes[open_files[dir_fd].node].size++;
 	write_inode(open_files[dir_fd].node); // write parent inode back to disk
-	return 0;
+	return new_inode;
 }
 
 int remove_file(int dir_fd, struct file_entry *file) {
@@ -781,8 +780,6 @@ int find_free_block(){
 		SEEK_SET);
 	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
 	free(temp_free_block);
-
-	printf("free block return %d\n", block_num);
 	return block_num;
 }
 

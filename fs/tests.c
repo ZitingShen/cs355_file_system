@@ -20,19 +20,73 @@ void test_mount_umount() {
 }
 
 void test_f_open() {
+	int result;
+	int fd;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_nested() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	fd = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(fd >= 0);
+
+	printf("%s\n", "Create and open /usr/design.txt");
+	fd = f_open("/usr/design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_relative() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	fd = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(fd >= 0);
+	pwd_fd = fd;
+
+	printf("%s\n", "Create and open /usr/design.txt by its relative path \'design.txt\'");
+	fd = f_open("design.txt", "w");
+	assert(fd >= 0);
+	print_disks();
+	print_fd(fd);
+}
+
+void test_f_open_after_close() {
+	// TODO
 }
 
 void test_f_close() {
-
+	// TODO
 }
 
 void test_f_read() {
-
+	// TODO
 }
 
 void test_f_write() {
-
+	// TODO
 }
 
 void test_f_seek() {
@@ -153,7 +207,7 @@ void test_f_stat() {
 }
 
 void test_f_remove() {
-
+	// TODO
 }
 
 void test_f_opendir_root() {
@@ -308,7 +362,7 @@ void test_f_mkdir() {
 }
 
 void test_f_rmdir() {
-
+	// TODO
 }
 
 int main() {
@@ -352,7 +406,19 @@ int main() {
 	// test_f_rewind();
 	// printf("\n");
 
-	printf("%s\n", "test rewind root directory");
-	test_f_stat();
+	// printf("%s\n", "test rewind root directory");
+	// test_f_stat();
+	// printf("\n");
+
+	// printf("%s\n", "test create and open /design.txt");
+	// test_f_open();
+	// printf("\n");
+
+	// printf("%s\n", "test create and open /usr/design.txt");
+	// test_f_open_nested();
+	// printf("\n");
+
+	printf("%s\n", "test create and open /usr/design.txt by its relative path");
+	test_f_open_relative();
 	printf("\n");
 }
