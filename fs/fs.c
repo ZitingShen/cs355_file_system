@@ -717,8 +717,6 @@ void write_inode(int node) {
 }
 
 void write_data(struct data_block *db) {
-	printf("%s\n", db->data + 4);
-	printf("%d\n", db->data_addr);
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.data_offset + db->data_addr)*cur_disk->sb.size,
 		SEEK_SET);
