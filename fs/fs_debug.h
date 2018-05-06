@@ -5,4 +5,5 @@
 
 void print_disks();
 void print_disk(struct disk_image *disk);
+void print_fd(int fd);
 #endif

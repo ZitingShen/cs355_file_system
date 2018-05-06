@@ -62,8 +62,8 @@ int f_open(const char *path, const char *mode) {
 	while(seg) {
 		subfile = find_subfile(next_fd, seg);
 		if(subfile.node < 0) {
-			if(strend(path, file_name) && (mode_binary & O_CREAT)) {
-				if(create_file(dir_fd, file_name, PERMISSION_DEFAULT, TYPE_NORMAL) < 0) {
+			if(strend(path, seg) && (mode_binary & O_CREAT)) {
+				if(create_file(next_fd, seg, PERMISSION_DEFAULT, TYPE_NORMAL) < 0) {
 					free(path_copy);
 					return -1;
 				} else {
@@ -249,6 +249,14 @@ int f_stat(int fd, struct stat *buf){
 	}
 }
 
+int f_remove(const char *path) {
+	int fd = f_opendir(path);
+	if(fd < 0)
+		return -1;
+	//if(remove_file())
+	return 0;
+}
+
 int f_opendir(const char *path) {
 	char *path_copy = malloc(strlen(path));
 	strcpy(path_copy, path);
@@ -263,20 +271,21 @@ int f_opendir(const char *path) {
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
+	struct file_entry subfile;
 	while(seg) {
-		if(cur_disk->inodes[open_files[next_fd].node].type != TYPE_DIRECTORY) {
-			errno = ENOENT;
-			free(path_copy);
-			return -1;
-		}
-		struct file_entry subfile = f_readdir(next_fd);
-		while(subfile.node >=0 && strncmp(seg, subfile.file_name, FILE_NAME_LENGTH)) {
-			subfile = f_readdir(next_fd);
-		}
-		if(subfile.node < 0) {
-			free(path_copy);
-			errno = ENOENT;
-			return -1;
+		subfile = find_subfile(next_fd, seg);
+		if(strend(path, seg)) {
+			if(subfile.node < 0 || cur_disk->inodes[subfile.node].type != TYPE_DIRECTORY) {
+				free(path_copy);
+				errno = ENOENT;
+				return -1;
+			}
+		} else {
+			if(subfile.node < 0) {
+				free(path_copy);
+				errno = ENOENT;
+				return -1;
+			}
 		}
 
 		open_files[next_fd].node = subfile.node;
@@ -322,7 +331,7 @@ struct file_entry f_readdir(int fd) {
 }
 
 int f_closedir(int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -331,8 +340,7 @@ int f_closedir(int fd){
 		return -1;
 	}
 	else{
-		struct inode cur_inode = (cur_disk->inodes)[open_files[fd].node];
-		if (cur_inode.type != TYPE_DIRECTORY){ //if fd is not a directory file
+		if (cur_disk->inodes[open_files[fd].node].type != TYPE_DIRECTORY){ //if fd is not a directory file
 			errno = EPERM;
 			return -1;
 		}
@@ -363,23 +371,24 @@ int f_mkdir(const char *path, int permission) {
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
+	struct file_entry subfile;
 	while(seg) {
-		if(cur_disk->inodes[open_files[next_fd].node].type != TYPE_DIRECTORY) {
-			errno = ENOENT;
-			free(path_copy);
-			return -1;
-		}
-		struct file_entry subfile = f_readdir(next_fd);
-		while(subfile.node >=0 && strncmp(seg, subfile.file_name, FILE_NAME_LENGTH)) {
-			subfile = f_readdir(next_fd);
-		}
-		if(subfile.node < 0) {
-			if(strend(path, seg)) {
+		subfile = find_subfile(next_fd, seg);
+		if(strend(path, seg)) {
+			if(subfile.node < 0) {
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					free(path_copy);
 					return -1;
+				} else {
+					return 0;
 				}
 			} else {
+				free(path_copy);
+				errno = ENOENT;
+				return -1;
+			}
+		} else {
+			if(subfile.node < 0) {
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
@@ -529,8 +538,8 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	int new_inode = cur_disk->sb.free_inode;
 
 	// check if more inode could be added
-	int INODE_MAX = (cur_disk->sb.data_offset - cur_disk->sb.inode_offset)/sizeof(struct inode);
-	if(cur_disk->inodes[cur_disk->sb.free_inode].next_inode >= INODE_MAX) {
+	int INODE_MAX = (cur_disk->sb.data_offset - cur_disk->sb.inode_offset)*cur_disk->sb.size/sizeof(struct inode);
+	if(cur_disk->inodes[new_inode].next_inode >= INODE_MAX) {
 		errno = ENOSPC;
 		return -1;
 	}
@@ -581,7 +590,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 }
 
 int remove_file(int dir_fd, struct file_entry *file) {
-
+	return 0;
 }
 
 int remove_directory(int dir_fd) {
@@ -593,7 +602,7 @@ int remove_directory(int dir_fd) {
 	while(subfile.node >=0) {
 		subfile = f_readdir(dir_fd);
 		if(subfile.node >= 0) {
-			if(cur_disk->inodes[open_files[next_fd]].type == TYPE_DIRECTORY) {
+			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 				open_files[next_fd].node = subfile.node;
 				open_files[next_fd].offset = 0;
 				open_files[next_fd].mode = O_RDONLY;
@@ -602,14 +611,14 @@ int remove_directory(int dir_fd) {
 					return -1;
 				}
 				remove_directory(target_fd);
-			} else if (cur_disk->inodes[open_files[target_fd]].type == TYPE_NORMAL) {
+			} else if (cur_disk->inodes[subfile.node].type == TYPE_NORMAL) {
 				remove_file(dir_fd, &subfile);
 			} else {
 				return -1;
 			}
 		}
 	}
-	return subfile;
+	return 0;
 }
 
 struct data_block load_block(int node_addr, int block_num) {
@@ -802,6 +811,7 @@ void print_disk(struct disk_image *disk) {
 	printf("	inode offset: %d\n", disk->sb.inode_offset);
 	printf("	data offset: %d\n", disk->sb.data_offset);
 	printf("	free block offset: %d\n", disk->sb.free_block_offset);
+	printf(" 	free block head: %d\n", disk->sb.free_block_head);
 	printf("	swap offset: %d\n", disk->sb.swap_offset);
 	printf("	free inode: %d\n", disk->sb.free_inode);
 	struct inode *current = disk->inodes;
@@ -810,7 +820,7 @@ void print_disk(struct disk_image *disk) {
 		+ (disks->sb.data_offset - disks->sb.inode_offset)*disks->sb.size) {
 		printf("inode: %d\n", counter);
 		if(current->nlink == 0) {
-			printf("	empty block\n");
+			printf("	empty inode\n");
 			printf("	next inode: %d\n", current->next_inode);
 		} else {
 			printf("	parent: %d\n", current->parent);
@@ -836,4 +846,11 @@ void print_disk(struct disk_image *disk) {
 		current++;
 		counter++;
 	}
+}
+
+void print_fd(int fd) {
+	printf("Fd %d in the open file table:\n", fd);
+	printf(" 	inode index: %d\n", open_files[fd].node);
+	printf(" 	offset: %d\n", open_files[fd].offset);
+	printf(" 	mode: %d\n", open_files[fd].mode);
 }
