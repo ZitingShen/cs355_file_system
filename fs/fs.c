@@ -40,6 +40,9 @@ int find_free_block();
 
 int strend(const char *s, const char *t);
 
+// Temporary functions
+void write_block_addr(int inode_addr, int block_num, int block_addr);
+
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
@@ -295,8 +298,6 @@ int f_opendir(const char *path) {
 	}
 
 	int return_fd = next_fd;
-	open_files[return_fd].mode = O_RDONLY;
-	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
 	if(increment_next_fd() == -1) {
 		free(path_copy);
 		return -1;
@@ -308,13 +309,12 @@ int f_opendir(const char *path) {
 struct file_entry f_readdir(int fd) {
 	struct file_entry subfile;
 	subfile.node = -1;
-	if(!(open_files[fd].mode & O_RDONLY)) {
-		errno = EACCES;
+
+	if (open_files[fd].offset >= cur_disk->inodes[open_files[fd].node].size) {
+		errno = ENOENT;
 		return subfile;
 	}
-
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
-
 	int block_num = open_files[fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
 	if(block_rmd != 0) {
@@ -400,7 +400,7 @@ int f_mkdir(const char *path, int permission) {
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
-
+	
 	free(path_copy);
 	return 0;
 }
@@ -453,10 +453,6 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 				open_files[i].node = -1;
 				open_files[i].offset = 0;
 				open_files[i].mode = -1;
-			}
-			pwd_fd = next_fd;
-			if(increment_next_fd() == -1) {
-				return -1;
 			}
 
 			disks->fd = fd;
@@ -527,6 +523,7 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
 		return subfile;
 	}
+
 	subfile = f_readdir(dir_fd);
 	while(subfile.node >=0 && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
@@ -564,12 +561,9 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	cur_disk->inodes[open_files[dir_fd].node].size--;
-	write_inode(open_files[dir_fd].node); // write child inode back to disk
-
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
-	int block_num = open_files[dir_fd].offset / FILE_ENTRY_N;
-	int block_rmd = open_files[dir_fd].offset % FILE_ENTRY_N;
+	int block_num = (cur_disk->inodes[open_files[dir_fd].node].size) / FILE_ENTRY_N;
+	int block_rmd = (cur_disk->inodes[open_files[dir_fd].node].size) % FILE_ENTRY_N;
 	struct data_block target_block;
 	if(block_rmd != 0) { // no need to create a new data block
 		block_num++;
@@ -577,6 +571,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	} else { // need to create a new data block
 		target_block.data = malloc(cur_disk->sb.size);
 		target_block.data_addr = find_free_block();
+		write_block_addr(open_files[dir_fd].node, block_num, target_block.data_addr);
 	}
 	*((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE)) = new_inode;
 	strncpy(target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, filename,
@@ -584,8 +579,8 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_data(&target_block); // write data back to disk
 	free(target_block.data);
 
-
-	open_files[dir_fd].offset++;
+	cur_disk->inodes[open_files[dir_fd].node].size++;
+	write_inode(open_files[dir_fd].node); // write parent inode back to disk
 	return 0;
 }
 
@@ -628,7 +623,7 @@ struct data_block load_block(int node_addr, int block_num) {
 
 	// when in direct blocks
 	if(block_num <= N_DBLOCKS) {
-		block_addr = node->dblocks[block_num-1];
+		block_addr = node->dblocks[block_num];
 		return load_data_block(block_addr);
 	}
 	block_num -= N_DBLOCKS;
@@ -718,10 +713,19 @@ void write_inode(int node) {
 }
 
 void write_data(struct data_block *db) {
+	printf("%s\n", db->data + 4);
+	printf("%d\n", db->data_addr);
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.data_offset + db->data_addr)*cur_disk->sb.size,
 		SEEK_SET);
 	write(cur_disk->fd, db->data, cur_disk->sb.size);
+}
+
+// TODO: temporary function. should be replaced with f_write or its helpers
+void write_block_addr(int inode_addr, int block_num, int block_addr) {
+	if(block_num < N_DBLOCKS) {
+		cur_disk->inodes[inode_addr].dblocks[block_num] = block_addr;
+	}
 }
 
 void add_free_block(int block_num){
@@ -742,9 +746,11 @@ void add_free_block(int block_num){
 	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
 
  /*move head to the previous block if current block is full*/
-	if (temp_free_block[0] == 512){
+	int POINTER_N = cur_disk->sb.size/POINTER_SIZE;
+	if (temp_free_block[0] == POINTER_N-1){
 		(cur_disk->sb).free_block_head = new_head-1;
 	}
+	write_superblock();
 	free(temp_free_block);
 }
 
@@ -759,19 +765,13 @@ int find_free_block(){
 		SEEK_SET);
 	read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
 
- /*move head to the next block if current block is empty*/
-	if (temp_free_block[0] == 0){
-		new_head++;
-		(cur_disk->sb).free_block_head = new_head;
-  /*read the next free block*/
-		lseek(cur_disk->fd,
-			OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
-			SEEK_SET);
-		read(cur_disk->fd, temp_free_block, (cur_disk->sb).size);
-	}
+	block_num = temp_free_block[temp_free_block[0]];
+	temp_free_block[0]--;
 
-	block_num = temp_free_block[temp_free_block[0]-1];
-	temp_free_block[0] --;
+	if(temp_free_block[0] == 0) {
+		(cur_disk->sb).free_block_head = new_head+1;
+	}
+	write_superblock();
 
  /*write back the free block*/
 	lseek(cur_disk->fd,
@@ -780,6 +780,7 @@ int find_free_block(){
 	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
 	free(temp_free_block);
 
+	printf("free block return %d\n", block_num);
 	return block_num;
 }
 
@@ -853,4 +854,14 @@ void print_fd(int fd) {
 	printf(" 	inode index: %d\n", open_files[fd].node);
 	printf(" 	offset: %d\n", open_files[fd].offset);
 	printf(" 	mode: %d\n", open_files[fd].mode);
+}
+
+void print_file_entry(struct file_entry *fe) {
+	printf("File entry\n");
+	printf(" 	inode index: %d\n", fe->node);
+	printf(" 	file name: ");
+	for(int i = 0; i < FILE_NAME_LENGTH; i++) {
+		printf("%c", fe->file_name[i]);
+	}
+	printf("\n");
 }

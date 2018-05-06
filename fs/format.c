@@ -69,7 +69,7 @@ int format(const char *file_name, int file_size) {
 	if (free_block_reserve_num % (POINTER_N-1) != 0)
 		free_block_reserve_num++;
 	sb.free_block_offset = free_block_num - free_block_reserve_num;
-	sb.free_block_head = sb.free_block_offset;
+	sb.free_block_head = 0;
 	sb.swap_offset = free_block_num;
 	sb.free_inode = 1;
 

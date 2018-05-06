@@ -65,7 +65,49 @@ void test_f_opendir_root() {
 }
 
 void test_f_opendir_absolute() {
-	
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open /usr");
+	fd = f_opendir("/usr");
+	assert(fd >= 0);
+	print_fd(fd);
+}
+
+void test_f_opendir_absolute_nested() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr/bin");
+	result = f_mkdir("/usr/bin", PERMISSION_DEFAULT);
+	assert(result == 0);
+	print_disks();
+
+	printf("%s\n", "Open /usr");
+	fd = f_opendir("/usr");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Open /usr/bin");
+	fd = f_opendir("/usr/bin");
+	assert(fd >= 0);
+	print_fd(fd);
 }
 
 void test_f_opendir_relative() {
@@ -73,7 +115,34 @@ void test_f_opendir_relative() {
 }
 
 void test_f_readdir() {
+	int result;
+	int fd;
+	struct file_entry subfile;
 
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open root directory");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Read /");
+	printf("%s\n", "Should successfully read /usr");
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+	print_file_entry(&subfile);
+	print_disks();
+
+	printf("%s\n", "Read / again");
+	printf("%s\n", "Should fail to read");
+	subfile = f_readdir(fd);
+	assert(subfile.node < 0);
 }
 
 void test_f_closedir() {
@@ -86,7 +155,7 @@ void test_f_closedir() {
 
 	printf("%s\n", "Open root directory");
 	fd = f_opendir("/");
-	assert(result >= 0);
+	assert(fd >= 0);
 	print_fd(fd);
 
 	printf("%s\n", "Close root directory");
@@ -125,7 +194,19 @@ int main() {
 	// test_f_mkdir();
 	// printf("\n");
 
-	printf("%s\n", "test close root directory");
-	test_f_closedir();
+	// printf("%s\n", "test close root directory");
+	// test_f_closedir();
+	// printf("\n");
+
+	// printf("%s\n", "test read root directory");
+	// test_f_readdir();
+	// printf("\n");
+
+	// printf("%s\n", "test open /usr directory");
+	// test_f_opendir_absolute();
+	// printf("\n");
+
+	printf("%s\n", "test open /usr/bin directory");
+	test_f_opendir_absolute_nested();
 	printf("\n");
 }
