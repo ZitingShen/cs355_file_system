@@ -111,7 +111,32 @@ void test_f_opendir_absolute_nested() {
 }
 
 void test_f_opendir_relative() {
-	
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr/bin");
+	result = f_mkdir("/usr/bin", PERMISSION_DEFAULT);
+	assert(result == 0);
+	print_disks();
+
+	printf("%s\n", "Open /usr");
+	fd = f_opendir("/usr");
+	assert(fd >= 0);
+	print_fd(fd);
+	pwd_fd = fd;
+
+	printf("%s\n", "Open /usr/bin by relative path \'bin\'");
+	fd = f_opendir("bin");
+	assert(fd >= 0);
+	print_fd(fd);
 }
 
 void test_f_readdir() {
@@ -206,7 +231,11 @@ int main() {
 	// test_f_opendir_absolute();
 	// printf("\n");
 
-	printf("%s\n", "test open /usr/bin directory");
-	test_f_opendir_absolute_nested();
+	// printf("%s\n", "test open /usr/bin directory");
+	// test_f_opendir_absolute_nested();
+	// printf("\n");
+
+	printf("%s\n", "test open /usr/bin directory by relative path");
+	test_f_opendir_relative();
 	printf("\n");
 }

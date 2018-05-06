@@ -146,7 +146,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 
 /*can also close directory file with this function call*/
 int f_close(int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return EOF;
 	}
@@ -164,7 +164,7 @@ int f_close(int fd){
 
 //success returns zero
 int f_seek(int fd, long offset, int whence){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -189,7 +189,7 @@ int f_seek(int fd, long offset, int whence){
 }
 
 void f_rewind(int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 	}
 
@@ -212,7 +212,7 @@ File Permissions:       -rwxr-xr-x
 */
 int f_stat(int fd, struct stat *buf){
 	
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -309,6 +309,10 @@ int f_opendir(const char *path) {
 struct file_entry f_readdir(int fd) {
 	struct file_entry subfile;
 	subfile.node = -1;
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
+		errno = EBADF;
+		return subfile;
+	}
 
 	if (open_files[fd].offset >= cur_disk->inodes[open_files[fd].node].size) {
 		errno = ENOENT;
