@@ -674,7 +674,7 @@ struct data_block load_data_block(int block_addr) {
 
 struct data_block load_indirect_block(int iblock_addr, int block_num) {
 	struct data_block indirect_block = load_data_block(iblock_addr);
-	int block_addr = *((int *) (indirect_block.data + block_num*sizeof(int)));
+	int block_addr = *((int *) (indirect_block.data + block_num*POINTER_SIZE));
 	free(indirect_block.data);
 	return load_data_block(block_addr);
 }
@@ -687,7 +687,7 @@ struct data_block load_i2block(int i2block_addr, int *block_num) {
 		i++;
 	}
 	struct data_block i2block = load_data_block(i2block_addr);
-	int iblock_addr = *((int *) (i2block.data + i*sizeof(int)));
+	int iblock_addr = *((int *) (i2block.data + i*POINTER_SIZE));
 	free(i2block.data);
 	return load_indirect_block(iblock_addr, *block_num);
 }
@@ -700,7 +700,7 @@ struct data_block load_i3block(int i3block_addr, int *block_num) {
 		i++;
 	}
 	struct data_block i3block = load_data_block(i3block_addr);
-	int i2block_addr = *((int *) (i3block.data + i*sizeof(int)));
+	int i2block_addr = *((int *) (i3block.data + i*POINTER_SIZE));
 	free(i3block.data);
 	return load_i2block(i2block_addr, block_num);
 }
