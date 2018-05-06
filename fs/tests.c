@@ -62,7 +62,11 @@ void test_f_open_relative() {
 	assert(result == 0);
 
 	printf("%s\n", "Make /usr");
-	fd = f_mkdir("/usr", PERMISSION_DEFAULT);
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open /usr");
+	fd = f_opendir("/usr");
 	assert(fd >= 0);
 	pwd_fd = fd;
 
@@ -117,7 +121,34 @@ void test_f_close() {
 }
 
 void test_f_read() {
-	// TODO
+	int result;
+	int fd, fd_usr;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Open /usr");
+	fd_usr = f_opendir("/usr");
+	assert(fd_usr >= 0);
+
+	printf("%s\n", "Open /");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	
+	printf("%s\n", "Read an int from /");
+	int i;
+	result = f_read(&i, sizeof(int), 1, fd);
+	printf("%d\n", result);
+	assert(result == sizeof(int));
+	
+	printf("i should equal to the inode index in the following file entry:\n");
+	printf("i: %d\n", i);
+	print_fd(fd_usr);
 }
 
 void test_f_write() {
@@ -447,7 +478,7 @@ int main() {
 
 	// printf("%s\n", "test create and open /design.txt");
 	// test_f_open();
-	// printf("\n");
+	// printf("\n"); 
 
 	// printf("%s\n", "test create and open /usr/design.txt");
 	// test_f_open_nested();
@@ -461,7 +492,12 @@ int main() {
 	// test_f_close();
 	// printf("\n");
 
-	printf("%s\n", "test open existing /design.txt after creating it");
-	test_f_open_existing();
+	// printf("%s\n", "test open existing /design.txt after creating it");
+	// test_f_open_existing();
+	// printf("\n");
+
+	printf("%s\n", "Create /usr, and read an int from /.");
+	printf("%s\n", "The int should be the inode index of /usr");
+	test_f_read();
 	printf("\n");
 }

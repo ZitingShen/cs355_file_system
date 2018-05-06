@@ -96,7 +96,7 @@ int f_open(const char *path, const char *mode) {
 }
 
 size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -113,6 +113,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 
 		struct data_block temp_data_block;
 		int first_block = 0;
+		int read_size = 0;
 
 		/*if there is offset, need to deal with the first data block to be read*/
 		if (file_offset != 0){
@@ -124,6 +125,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 				strncpy(ptr + cur_out_offset, (char *)((temp_data_block.data) + first_block_rem), copy_size);
 				cur_out_offset += copy_size;
 				rem_size -= copy_size;
+				read_size += copy_size;
 				first_block ++;
 			}
 		}
@@ -138,15 +140,16 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		for (int i = first_block; i < num_block; i++){
 			if (rem_size <= 0) break;
 			temp_data_block = load_block(open_files[fd].node, i);
-
+			if(temp_data_block.data == 0)
+				break;
 			remainder = rem_size % (cur_disk->sb).size;
 			strncpy((char*)(ptr + cur_out_offset), (char*)temp_data_block.data, remainder);
 			cur_out_offset += remainder;
 			rem_size -= remainder;
-
+			read_size += remainder;
 			free(temp_data_block.data);
 		}
-		return 0;
+		return read_size;
 	}
 }
 
