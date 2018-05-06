@@ -106,36 +106,45 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		return -1;
 	}
 	else{
+		int BLOCK_SIZE = (cur_disk->sb).size;
+		//int N_POINTER = BLOCK_SIZE / sizeof(int);
 		size_t rem_size = size * nitems; //total read size
 		int file_offset = open_files[fd].offset; 
-		int cur_out_offset = 0;
+		size_t cur_out_offset = 0;
+
+		struct data_block temp_data_block;
+		int first_block = 0;
+
+		/*if there is offset, need to deal with the first data block to be read*/
+		if (file_offset != 0){
+			size_t first_block_rem = file_offset % (cur_disk->sb).size;
+			first_block = file_offset / (cur_disk->sb).size;
+			if (first_block_rem != 0){
+				size_t copy_size = BLOCK_SIZE - first_block_rem;
+				temp_data_block = load_block(open_files[fd].node, first_block);
+				strncpy(ptr + cur_out_offset, (char *)((temp_data_block.data) + first_block_rem), copy_size);
+				cur_out_offset += copy_size;
+				rem_size -= copy_size;
+				first_block ++;
+			}
+		}
 
 		int num_block = rem_size / (cur_disk->sb).size;
 			if (rem_size % (cur_disk->sb).size != 0){
 				num_block ++;
 			}
 
-		struct data_block temp_data_block;
-		int first_block = file_offset / (cur_disk->sb).size;
-
-		/*if there is offset, need to deal with the first data block to be read*/
-		if (file_offset != 0){
-			int first_block_rem = file_offset % (cur_disk->sb).size;
-			if (first_block_rem != 0){
-				temp_data_block = load_block(open_files[fd].node, first_block);
-				strcpy(ptr + cur_out_offset, (char *)((temp_data_block.data) + ((cur_disk->sb).size)-first_block_rem));
-				cur_out_offset += first_block_rem;
-				first_block ++;
-			}
-		}
-
+		size_t remainder;
 		/*read from data blocks*/
 		for (int i = first_block; i < num_block; i++){
 			if (rem_size <= 0) break;
-			rem_size -= (cur_disk->sb).size;
 			temp_data_block = load_block(open_files[fd].node, i);
-			strcpy(ptr + cur_out_offset, temp_data_block.data);
-			cur_out_offset += (cur_disk->sb).size;
+
+			remainder = rem_size % (cur_disk->sb).size;
+			strncpy((char*)(ptr + cur_out_offset), (char*)temp_data_block.data, remainder);
+			cur_out_offset += remainder;
+			rem_size -= remainder;
+
 			free(temp_data_block.data);
 		}
 		return 0;
@@ -718,6 +727,8 @@ void write_block_addr(int inode_addr, int block_num, int block_addr) {
 		cur_disk->inodes[inode_addr].dblocks[block_num] = block_addr;
 	}
 }
+
+void write_block();
 
 void add_free_block(int block_num){
 	int new_head = (cur_disk->sb).free_block_head;
