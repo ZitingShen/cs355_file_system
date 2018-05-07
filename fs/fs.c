@@ -816,8 +816,8 @@ int remove_directory(int dir_fd) {
 				}
 				remove_directory(target_fd);
 			} else if (cur_disk->inodes[subfile.node].type == TYPE_NORMAL) {
-				int dir_inode_idx = open_files[dir_fd.node];
-				int subfile_inode_idx = open_files[subfile.node];
+				int dir_inode_idx = open_files[dir_fd].node;
+				int subfile_inode_idx = subfile.node;
 				remove_file(dir_inode_idx, subfile_inode_idx);
 				//remove_file(dir_fd, &subfile);
 			} else {
