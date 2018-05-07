@@ -156,7 +156,33 @@ void test_f_read_more() {
 }
 
 void test_f_write() {
-	// TODO
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer 4242 to /design.txt");
+	int i = 4242;
+	result = f_write(&i, sizeof(int), 1, fd);
+	assert(result == sizeof(int));
+	print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read an integer from /design.txt and make sure it's 4242");
+	int j;
+	result = f_read(&j, sizeof(int), 1, fd);
+	assert(result == sizeof(int));
+	printf("%d\n", j);
+	assert(i == j);
 }
 
 void test_f_seek() {
@@ -500,8 +526,12 @@ int main() {
 	// test_f_open_existing();
 	// printf("\n");
 
-	printf("%s\n", "Create /usr, and read an int from /.");
-	printf("%s\n", "The int should be the inode index of /usr");
-	test_f_read();
+	// printf("%s\n", "create /usr, and read an int from /.");
+	// printf("%s\n", "the int should be the inode index of /usr");
+	// test_f_read();
+	// printf("\n");
+
+	printf("%s\n", "test write an integer 4242 into /design.txt.");
+	test_f_write();
 	printf("\n");
 }

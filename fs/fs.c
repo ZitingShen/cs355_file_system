@@ -1159,7 +1159,8 @@ void write_superblock() {
 
 void write_inode(int node) {
 	lseek(cur_disk->fd, 
-		OFFSET_START + cur_disk->sb.inode_offset*cur_disk->sb.size, SEEK_SET);
+		OFFSET_START + cur_disk->sb.inode_offset*cur_disk->sb.size + node*sizeof(struct inode), 
+		SEEK_SET);
 	write(cur_disk->fd, &(cur_disk->inodes[node]), sizeof(struct inode));
 }
 
