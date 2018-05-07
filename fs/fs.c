@@ -140,7 +140,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 				if (rem_size < copy_size) copy_size = rem_size;
 
 				temp_data_block = load_block(open_files[fd].node, first_block);
-				strncpy(ptr + cur_out_offset, (char *)((temp_data_block.data) + first_block_rem), copy_size);
+				memcpy(ptr + cur_out_offset, temp_data_block.data + first_block_rem, copy_size);
 
 				cur_out_offset += copy_size;
 				rem_size -= copy_size;
@@ -166,7 +166,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 				remainder += BLOCK_SIZE;
 			}
 
-			strncpy((char*)(ptr + cur_out_offset), (char*)temp_data_block.data, remainder);
+			memcpy(ptr + cur_out_offset, temp_data_block.data, remainder);
 			cur_out_offset += remainder;
 			rem_size -= remainder;
 			read_size += remainder;
@@ -213,7 +213,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 				//if(temp_data_block.data == 0);
 					//set errno???
 					//return -1;???
-				strncpy((char *)((temp_data_block.data) + first_block_rem), ptr + cur_out_offset, copy_size);
+				memcpy(temp_data_block.data + first_block_rem, ptr + cur_out_offset, copy_size);
 				write_block(open_files[fd].node, first_block, temp_data_block.data);
 
 				cur_out_offset += copy_size;
@@ -238,7 +238,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 				remainder += BLOCK_SIZE;
 			}
 
-			strncpy(buf, (char*)(ptr + cur_out_offset), remainder);
+			memcpy(buf, ptr + cur_out_offset, remainder);
 			write_block(open_files[fd].node, i, buf);
 
 			cur_out_offset += remainder;

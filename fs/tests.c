@@ -185,6 +185,91 @@ void test_f_write() {
 	assert(i == j);
 }
 
+void test_f_write_multiple_times() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write integer 1000 to 1999 to /design.txt, one at a time");
+	int i;
+	for(int k = 0; k < 200; k++) {
+		i = k+1000;
+		result = f_write(&i, sizeof(int), 1, fd);
+		assert(result == sizeof(int));
+	}
+	print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read an integer 1000 times from /design.txt and make sure it matches the original ones");
+	int j;
+	for(int k = 0; k < 200; k++) {
+		result = f_read(&j, sizeof(int), 1, fd);
+		assert(result == sizeof(int));
+		printf("%d\n", j);
+		//assert(j == (k+1000));
+	}
+	printf("%s\n", "OK");
+}
+
+void test_f_write_multiple_bytes() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer array of size 1000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 1999");
+	// int arr[1000];
+	// for(int k = 0; k < 1000; k++) {
+	// 	arr[k] = k+1000;
+	// }
+	// result = f_write(&(arr[0]), sizeof(int), 1000, fd);
+	// assert(result == sizeof(int)*1000);
+	int i;
+	for(int k = 0; k < 1000; k++) {
+		i = k+1000;
+		result = f_write(&i, sizeof(int), 1, fd);
+		assert(result == sizeof(int));
+	}
+	print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
+	// int arr2[1000];
+	// result = f_read(&(arr2[0]), sizeof(int), 1000, fd);
+	// assert(result == sizeof(int)*1000);
+	// for(int k = 0; k < 1000; k++) {
+	// 	printf("%d\n", arr2[k]);
+	// 	//assert(arr2[k] == arr[k]);
+	// }
+	int j;
+	for(int k = 0; k < 1000; k++) {
+		result = f_read(&j, sizeof(int), 1, fd);
+		assert(result == sizeof(int));
+		assert(j == (k+1000));
+	}
+	printf("%s\n", "OK");
+}
+
 void test_f_seek() {
 	int result;
 	int fd;
@@ -531,7 +616,15 @@ int main() {
 	// test_f_read();
 	// printf("\n");
 
-	printf("%s\n", "test write an integer 4242 into /design.txt.");
-	test_f_write();
+	// printf("%s\n", "test write an integer 4242 into /design.txt.");
+	// test_f_write();
+	// printf("\n");
+
+	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
+	test_f_write_multiple_times();
 	printf("\n");
+
+	// printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
+	// test_f_write_multiple_bytes();
+	// printf("\n");
 }
