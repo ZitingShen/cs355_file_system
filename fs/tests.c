@@ -348,7 +348,7 @@ void test_f_write_i3block() {
 	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
 	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
 	int size = 2000000;
-	int arr[size];
+	int *arr = malloc(sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
 		arr[k] = k+1000;
 	}
@@ -361,13 +361,15 @@ void test_f_write_i3block() {
 	f_rewind(fd);
 
 	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
-	int arr2[size];
+	int *arr2 = malloc(sizeof(int)*size);
 	result = f_read(&(arr2[0]), sizeof(int), size, fd);
 	assert(result == sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
 		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");
+	free(arr1);
+	free(arr2);
 }
 
 void test_f_seek() {
