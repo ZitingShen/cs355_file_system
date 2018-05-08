@@ -869,7 +869,6 @@ struct data_block load_data_block(int block_addr) {
 		OFFSET_START + (cur_disk->sb.data_offset + block_addr)*cur_disk->sb.size, 
 		SEEK_SET);
 	void *data = malloc(cur_disk->sb.size);
-	printf("1 %p\n", data);
 	read(cur_disk->fd, data, cur_disk->sb.size);
 
 	struct data_block result;
