@@ -829,6 +829,7 @@ struct data_block load_block(int node_addr, int block_num) {
 	struct inode *node = &(cur_disk->inodes[node_addr]);
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int block_addr;
+	printf("%d\n", block_num);
 
 	// when in direct blocks
 	if(block_num < N_DBLOCKS) {
@@ -1090,8 +1091,6 @@ int* which_to_find_free (size_t file_block, int block_num){
 			i++;
 		}
 
-		printf("%d %d %d\n", block_num, i, j);
-
 		//j is now number of fully used 1st level block
 		//i is number of remaining data_block
 		add_free[0] = 1;
@@ -1101,7 +1100,6 @@ int* which_to_find_free (size_t file_block, int block_num){
 				add_free[2] = 1;
 			}
 		}
-		printf("%d %d %d %d\n", block_num, add_free[0], add_free[1], add_free[2]);
 	}
 	/*if in triply indirect block*/
 	else if (block_num <=  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N 
