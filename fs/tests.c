@@ -365,6 +365,8 @@ void test_f_write_i3block() {
 	result = f_read(&(arr2[0]), sizeof(int), size, fd);
 	assert(result == sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
+		if(arr2[k] != arr[k])
+			printf("%d %d\n", arr2[k], arr[k]);
 		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");

@@ -1004,7 +1004,6 @@ void write_indirect_block(int iblock_addr, int block_num, void * data, int add_f
 	else{
 		block_addr = ((int *) indirect_block.data)[block_num];
 	}
-	printf("2 %p\n", indirect_block.data);
 	free(indirect_block.data);
 	write_data_block(block_addr, data);
 	return;
@@ -1028,7 +1027,6 @@ void write_i2block(int i2block_addr, int *block_num, void * data, int add_free[4
 	} else{
 		iblock_addr = ((int *) i2block.data)[i];
 	}
-	printf("--- %d\n", iblock_addr);
 	free(i2block.data);
 	write_indirect_block(iblock_addr, *block_num, data, add_free);
 	return;
