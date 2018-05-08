@@ -367,11 +367,13 @@ struct file_entry f_readdir(int fd) {
 	subfile.node = -1;
 	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
+		printf("fail\n");
 		return subfile;
 	}
 
 	if (open_files[fd].offset >= cur_disk->inodes[open_files[fd].node].size) {
 		errno = ENOENT;
+		printf("fail2\n");
 		return subfile;
 	}
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
