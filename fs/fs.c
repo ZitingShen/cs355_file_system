@@ -1035,7 +1035,7 @@ void write_i3block(int i3block_addr, int *block_num, void * data, int add_free[4
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int i2block_addr;
 	int i = 0;
-	while((*block_num) > POINTER_N*POINTER_N) {
+	while((*block_num) >= POINTER_N*POINTER_N) {
 		(*block_num) -= POINTER_N*POINTER_N;
 		i++;
 	}
