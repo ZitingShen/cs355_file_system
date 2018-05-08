@@ -308,8 +308,8 @@ void test_f_write_i2block() {
 	fd = f_open("/design.txt", "w");
 	assert(fd >= 0);
 
-	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
-	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
+	printf("%s\n", "Write an integer array of size 2000000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 2000999");
 	int size = 2000000;
 	int *arr = malloc(sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
@@ -737,7 +737,7 @@ int main() {
 	// test_f_write_iblocks();
 	// printf("\n");
 
-	// printf("%s\n", "test write an integer array of size 20000 into /design.txt.");
+	// printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
 	// printf("%s\n", "test of read and write on iblocks.");
 	// test_f_write_i2block();
 	// printf("\n");
