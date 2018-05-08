@@ -893,7 +893,7 @@ struct data_block load_i2block(int i2block_addr, int *block_num) {
 	}
 	struct data_block i2block = load_data_block(i2block_addr);
 	int iblock_addr = *((int *) (i2block.data + i*POINTER_SIZE));
-	printf("-- %d\n", iblock_addr);
+	printf("-- %d %d\n", i, iblock_addr);
 	free(i2block.data);
 	return load_indirect_block(iblock_addr, *block_num);
 }
