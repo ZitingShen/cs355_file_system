@@ -900,7 +900,7 @@ struct data_block load_i2block(int i2block_addr, int *block_num) {
 struct data_block load_i3block(int i3block_addr, int *block_num) {
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int i = 0;
-	while((*block_num) > POINTER_N*POINTER_N) {
+	while((*block_num) >= POINTER_N*POINTER_N) {
 		(*block_num) -= POINTER_N*POINTER_N;
 		i++;
 	}
