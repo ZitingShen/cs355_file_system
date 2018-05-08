@@ -18,7 +18,7 @@ struct disk_image *disks = 0;
 struct open_file open_files[OPEN_FILE_MAX];
 int next_fd = 0;
 
-size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd);
+size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int offset_unit);
 int increment_next_fd();
 int convert_mode(const char* mode);
 struct file_entry find_subfile(int dir_fd, char *file_name);
@@ -186,7 +186,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
 		int file_offset = open_files[fd].offset; 
 
-		size_t write_size = f_write_helper(ptr, size, nitems, fd);
+		size_t write_size = f_write_helper(ptr, size, nitems, fd, open_files[fd].offset);
 		// change offset
 		open_files[fd].offset += write_size;
 
@@ -467,8 +467,9 @@ int f_mkdir(const char *path, int permission) {
 
 int f_rmdir(const char *path) {
 	int fd = f_opendir(path);
-	if(fd < 0)
+	if(fd < 0) {
 		return -1;
+	}
 	if(remove_directory(fd) < 0)
 		return -1;
 	f_closedir(fd);
@@ -544,15 +545,14 @@ int f_umount(const char *target, int flags) {
 }
 
 //****************************HELPER FUNCTIONS******************
-size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd){
+size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int file_offset){
 	struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
 	int BLOCK_SIZE = (cur_disk->sb).size;
 	//int N_POINTER = BLOCK_SIZE / sizeof(int);
 	size_t rem_size = size * nitems; //remaining read size
-	int file_offset = open_files[fd].offset; 
 	size_t cur_out_offset = 0;
 	//if offset is ahead of size, return error
-	if (cur_inode -> size < file_offset){
+	if (cur_inode -> size < open_files[fd].offset){
 		errno = EADDRNOTAVAIL;
 		return -1;
 	}
@@ -682,10 +682,12 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd) != sizeof(int))
+	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
 		return -1;
-	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd) != FILE_NAME_LENGTH)
+	}
+	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 		return -1;
+	}
 
 	cur_disk->inodes[open_files[dir_fd].node].size++;
 	write_inode(open_files[dir_fd].node); // write parent inode back to disk

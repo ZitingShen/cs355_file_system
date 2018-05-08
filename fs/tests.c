@@ -618,7 +618,8 @@ void test_f_readdir_crazy() {
 	int result;
 	int fd;
 	struct file_entry subfile;
-	int size = 600000;
+	int size = 600;
+	//int size = 600000;
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);

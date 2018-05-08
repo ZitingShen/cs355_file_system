@@ -27,9 +27,6 @@ Limitations:
 
 2. The disk can have at most 4294967295 files, and each file has at most 12 characters name.
 
-3. The file system will not check if multiple directories have the same name.
-
-
 
 Todos:
 1. Check permission for all disk operations.
