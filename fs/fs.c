@@ -730,7 +730,6 @@ int remove_file(int dir_inode_idx, int file_inode_idx) {
 	return 0;
 }
 
-
 /*
 1.find file entry and remove it
 2.move the last entry (if there is one) to the hole
@@ -925,7 +924,7 @@ void write_block(int node_addr, int block_num, void * data) {
 	}
 
 	int add_free[4] = {0, 0, 0, 0};
-	int * result = which_to_find_free(file_block, block_num + 1);
+	int* result = which_to_find_free(file_block, block_num + 1);
 	for (int l = 1; l < 4; l ++){
 		add_free[l] = result[l];
 	}
@@ -1247,7 +1246,7 @@ void clean_i3block(int i3block_addr, size_t *rem_size){
 	for (int i = 0; i < N_POINTER; i ++){
 		if (*rem_size <= 0) break;
 		i2block_addr = ((int *)i3block.data)[i];
-		clean_iblock(i2block_addr, rem_size);
+		clean_i2block(i2block_addr, rem_size);
 	}
 	add_free_block(i3block_addr);
 	free(i3block.data);
