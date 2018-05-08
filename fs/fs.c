@@ -1122,6 +1122,7 @@ int* which_to_find_free (size_t file_block, int block_num){
 		//j is total number of 1st level block being fully used
 		//k is total number of data block in the not fully used 1st level block
 		// i: 2nd; j: 1st; k: data_block
+		printf("%d %d %d %d\n", block_num, i, j, k);
 		add_free[0] = 1;
 		if (file_block <= total_until_i3 + i * POINTER_N * POINTER_N + j * POINTER_N && k == 1){
 			add_free[1] = 1;
