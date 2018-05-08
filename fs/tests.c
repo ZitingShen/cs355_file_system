@@ -368,7 +368,7 @@ void test_f_write_i3block() {
 		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");
-	free(arr1);
+	free(arr);
 	free(arr2);
 }
 
