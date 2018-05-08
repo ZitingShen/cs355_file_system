@@ -1045,6 +1045,7 @@ void write_i3block(int i3block_addr, int *block_num, void * data, int add_free[4
 		i2block_addr = find_free_block();
 		((int *)i3block.data)[i] = i2block_addr;
 		write_data(&i3block);
+		printf("%d\n", i2block_addr);
 	} else{
 		i2block_addr = ((int *) i3block.data)[i];
 	}
