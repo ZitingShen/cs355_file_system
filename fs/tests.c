@@ -614,6 +614,40 @@ void test_f_readdir() {
 	assert(subfile.node < 0);
 }
 
+void test_f_readdir_crazy() {
+	int result;
+	int fd;
+	struct file_entry subfile;
+	int size = 600000;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr for 600000 times");
+	for(int i = 0; i < size; i++) {
+		result = f_mkdir("/usr", PERMISSION_DEFAULT);
+		assert(result == 0);
+	}
+
+	printf("%s\n", "Open root directory");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Read / for 600000 times");
+	printf("%s\n", "Should successfully read /usr");
+	for(int i = 0; i < size; i++) {
+		subfile = f_readdir(fd);
+		assert(subfile.node >= 0);
+	}
+
+	printf("%s\n", "Read / again");
+	printf("%s\n", "Should fail to read");
+	subfile = f_readdir(fd);
+	assert(subfile.node < 0);
+}
+
 void test_f_closedir() {
 	int result;
 	int fd;
@@ -671,6 +705,10 @@ int main() {
 	// test_f_readdir();
 	// printf("\n");
 
+	printf("%s\n", "test read root directory for 600000 times");
+	test_f_readdir_crazy();
+	printf("\n");
+
 	// printf("%s\n", "test open /usr directory");
 	// test_f_opendir_absolute();
 	// printf("\n");
@@ -720,6 +758,7 @@ int main() {
 	// test_f_read();
 	// printf("\n");
 
+
 	// printf("%s\n", "test write an integer 4242 into /design.txt.");
 	// test_f_write();
 	// printf("\n");
@@ -742,8 +781,8 @@ int main() {
 	// test_f_write_i2block();
 	// printf("\n");
 
-	printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
-	printf("%s\n", "test of read and write on iblocks.");
-	test_f_write_i3block();
-	printf("\n");
+	// printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
+	// printf("%s\n", "test of read and write on iblocks.");
+	// test_f_write_i3block();
+	// printf("\n");
 }
