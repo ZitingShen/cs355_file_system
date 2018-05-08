@@ -119,6 +119,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		return -1;
 	}
 	else{
+		printf("here 1\n");
 		int BLOCK_SIZE = (cur_disk->sb).size;
 		//int N_POINTER = BLOCK_SIZE / sizeof(int);
 		size_t rem_size = size * nitems; //total read size
@@ -129,6 +130,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		int first_block = 0;
 		int read_size = 0;
 
+		printf("here 2\n");
 		/*if there is offset, need to deal with the first data block to be read*/
 		if (file_offset != 0){
 			size_t first_block_rem = file_offset % BLOCK_SIZE;
@@ -147,12 +149,14 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 			}
 		}
 
+		printf("here 3\n");
 		int num_block = rem_size / BLOCK_SIZE;
 		if (rem_size % BLOCK_SIZE != 0){
 			num_block ++;
 		}
 
 		size_t remainder;
+		printf("here 4\n");
 		/*read from data blocks*/
 		for (int i = first_block; i < first_block + num_block; i++){
 			if (rem_size <= 0) break;

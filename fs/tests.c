@@ -354,7 +354,7 @@ void test_f_write_i3block() {
 	}
 	result = f_write(&(arr[0]), sizeof(int), size, fd);
 	assert(result == sizeof(int)*size);
-	print_disks();
+	//print_disks();
 	print_fd(fd);
 
 	printf("%s\n", "Rewind the offset of /design.txt");
