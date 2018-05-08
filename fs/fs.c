@@ -755,7 +755,7 @@ int find_and_remove_entry(int dir_inode_idx, int file_inode_idx){
 		last_entry_idx --;
 	}
 	
-	/*find where the entry that contains filename is*/
+	/*find where the entry that contains file_inode_idx is*/
 	struct data_block temp_data_block;
 	struct file_entry * temp_file_entry = malloc(sizeof(struct file_entry));
 	int entry_idx = 0;
