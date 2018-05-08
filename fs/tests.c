@@ -627,6 +627,8 @@ void test_f_readdir_crazy() {
 	printf("%s\n", "Make directory /usr for 600000 times");
 	for(int i = 0; i < size; i++) {
 		result = f_mkdir("/usr", PERMISSION_DEFAULT);
+		if(result != 0)
+			printf("%d\n", i);
 		assert(result == 0);
 	}
 
