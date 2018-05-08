@@ -869,6 +869,7 @@ struct data_block load_data_block(int block_addr) {
 		OFFSET_START + (cur_disk->sb.data_offset + block_addr)*cur_disk->sb.size, 
 		SEEK_SET);
 	void *data = malloc(cur_disk->sb.size);
+	printf("1 %p\n", data);
 	read(cur_disk->fd, data, cur_disk->sb.size);
 
 	struct data_block result;
@@ -998,13 +999,12 @@ void write_indirect_block(int iblock_addr, int block_num, void * data, int add_f
 	if (add_free[0]){ //need to find a free block as data block
 		block_addr = find_free_block();
 		((int *)indirect_block.data)[block_num] = block_addr;
-		if(iblock_addr == 528)
-			printf("%d\n", block_addr);
 		write_data(&indirect_block);
 	}
 	else{
 		block_addr = ((int *) indirect_block.data)[block_num];
 	}
+	printf("2 %p\n", indirect_block.data);
 	free(indirect_block.data);
 	write_data_block(block_addr, data);
 	return;
@@ -1019,13 +1019,16 @@ void write_i2block(int i2block_addr, int *block_num, void * data, int add_free[4
 		(*block_num) -= POINTER_N;
 		i++;
 	}
+
 	if(add_free[1]) {//need to find a free block as 1st level block
 		iblock_addr = find_free_block();
 		((int *)i2block.data)[i] = iblock_addr;
 		write_data(&i2block);
+		i2block = load_data_block(i2block_addr);
 	} else{
-		iblock_addr = ((int *) i2block.data)[*block_num];
+		iblock_addr = ((int *) i2block.data)[i];
 	}
+	printf("--- %d\n", iblock_addr);
 	free(i2block.data);
 	write_indirect_block(iblock_addr, *block_num, data, add_free);
 	return;
@@ -1098,6 +1101,7 @@ int* which_to_find_free (size_t file_block, int block_num){
 				add_free[2] = 1;
 			}
 		}
+		printf("%d %d %d %d\n", block_num, add_free[0], add_free[1], add_free[2]);
 	}
 	/*if in triply indirect block*/
 	else if (block_num <=  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N 
