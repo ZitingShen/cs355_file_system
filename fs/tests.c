@@ -349,7 +349,7 @@ void test_f_write_i3block() {
 
 	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
 	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
-	int size = 2000000;
+	int size = 3000000;
 	int *arr = malloc(sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
 		arr[k] = k+1000;
