@@ -618,18 +618,17 @@ void test_f_readdir_crazy() {
 	int result;
 	int fd;
 	struct file_entry subfile;
-	int size = 600;
-	//int size = 600000;
+	char filename[12];
+	int size = 99;
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
 
-	printf("%s\n", "Make directory /usr for 600000 times");
+	printf("%s\n", "Make directory /usr<index> for 99 times");
 	for(int i = 0; i < size; i++) {
-		result = f_mkdir("/usr", PERMISSION_DEFAULT);
-		if(result != 0)
-			printf("%d\n", i);
+		sprintf(filename, "/usr%d", i);
+		result = f_mkdir(filename, PERMISSION_DEFAULT);
 		assert(result == 0);
 	}
 
@@ -638,10 +637,12 @@ void test_f_readdir_crazy() {
 	assert(fd >= 0);
 	print_fd(fd);
 
-	printf("%s\n", "Read / for 600000 times");
-	printf("%s\n", "Should successfully read /usr");
+	printf("%s\n", "Read / for 99 times");
+	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
+		if(subfile.node < 0)
+			printf("%d\n", i);
 		assert(subfile.node >= 0);
 	}
 
