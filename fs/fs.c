@@ -414,11 +414,13 @@ struct file_entry f_readdir(int fd) {
 	struct file_entry subfile;
 	subfile.node = -1;
 	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
+		printf("fail 1\n");
 		errno = EBADF;
 		return subfile;
 	}
 
 	if (open_files[fd].offset >= cur_disk->inodes[open_files[fd].node].size) {
+		printf("fail 2\n");
 		errno = ENOENT;
 		return subfile;
 	}
