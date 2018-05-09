@@ -1060,14 +1060,22 @@ int main() {
 	test_f_write_i3block();
 	printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create and remove /design.txt");
 	test_f_remove();
 	printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create 100 files and remove them");
 	test_f_remove_crazy();
 	printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test create and remove a large /design.txt");
+	test_f_remove_large();
+	printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create /usr and a bunch subfiles/subdirectories and remove /usr");
 	test_f_rmdir();
 	printf("\n");
