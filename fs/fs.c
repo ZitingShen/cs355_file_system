@@ -467,7 +467,10 @@ int f_mkdir(const char *path, int permission) {
 					subfile = find_subfile(next_fd, seg);
 					char file_name[FILE_NAME_LENGTH];
 					bzero(file_name, FILE_NAME_LENGTH);
+					int parent_inode = open_files[next_fd].node;
+					open_files[next_fd].node = subfile.node;
 					open_files[next_fd].offset = 0;
+					open_files[next_fd].mode = O_RDONLY;
 
 					file_name[0] = '.';
 					if(f_write_helper(&(subfile.node), sizeof(int), 1, subfile.node, 
@@ -478,19 +481,21 @@ int f_mkdir(const char *path, int permission) {
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 						return -1;
 					}
-					open_files[subfile.node].offset++;
+					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
 
 					file_name[1] = '.';
-					if(f_write_helper(&(open_files[next_fd].node), sizeof(int), 1, subfile.node, 
+					if(f_write_helper(&parent_inode, sizeof(int), 1, subfile.node, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						printf("fail 3\n");
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						printf("fail 4\n");
 						return -1;
 					}
-					open_files[subfile.node].offset++;
+					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
 					write_inode(open_files[next_fd].node);
 
