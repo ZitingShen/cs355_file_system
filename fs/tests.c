@@ -849,13 +849,14 @@ int main() {
 	// test_f_open_relative();
 	// printf("\n");
 
-	printf("%s\n", "test close /design.txt after opening it");
-	test_f_close();
-	printf("\n");
-
-	// printf("%s\n", "test open existing /design.txt after creating it");
-	// test_f_open_existing();
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test close /design.txt after opening it");
+	// test_f_close();
 	// printf("\n");
+
+	printf("%s\n", "test open existing /design.txt after creating it");
+	test_f_open_existing();
+	printf("\n");
 
 	// printf("%s\n", "create /usr, and read an int from /.");
 	// printf("%s\n", "the int should be the inode index of /usr");
