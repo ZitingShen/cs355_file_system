@@ -572,7 +572,7 @@ size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int f
 				//return -1;???
 			memcpy(temp_data_block.data + first_block_rem, ptr + cur_out_offset, copy_size);
 			write_block(open_files[fd].node, first_block, temp_data_block.data);
-
+			free(temp_data_block.data);
 			cur_out_offset += copy_size;
 			rem_size -= copy_size;
 			first_block++;
