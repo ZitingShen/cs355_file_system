@@ -821,15 +821,15 @@ int main() {
 	// test_f_opendir_relative();
 	// printf("\n");
 
-	printf("%s\n", "test seek root directory");
-	test_f_seek();
-	printf("\n");
-
-	// printf("%s\n", "test rewind root directory");
-	// test_f_rewind();
+	// printf("%s\n", "test seek root directory");
+	// test_f_seek();
 	// printf("\n");
 
-	// printf("%s\n", "test rewind root directory");
+	printf("%s\n", "test rewind root directory");
+	test_f_rewind();
+	printf("\n");
+
+	// printf("%s\n", "test stat root directory");
 	// test_f_stat();
 	// printf("\n");
 
