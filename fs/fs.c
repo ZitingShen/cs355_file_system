@@ -416,7 +416,8 @@ int f_mkdir(const char *path, int permission) {
 		errno = EINVAL;
 		return -1;
 	}
-	char *path_copy = malloc(strlen(path)+1);
+	char *path_copy = malloc(FILE_NAME_LENGTH);
+	bzero(path_copy, FILE_NAME_LENGTH);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
