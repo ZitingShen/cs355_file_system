@@ -811,16 +811,11 @@ void test_f_readdir() {
 	print_fd(fd);
 
 	printf("%s\n", "Read /");
-	printf("%s\n", "Should successfully read /usr");
+	printf("%s\n", "Should successfully read");
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
 	print_disks();
-
-	printf("%s\n", "Read / again");
-	printf("%s\n", "Should fail to read");
-	subfile = f_readdir(fd);
-	assert(subfile.node < 0);
 
 	printf("%s\n", "Unmount empty-disk");
 	result = f_umount(0, 0);
