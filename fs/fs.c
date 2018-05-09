@@ -60,7 +60,7 @@ int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
 	if (mode_binary < 0)
 		return -1;
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -317,7 +317,7 @@ int f_remove(const char *path) {
 }
 
 int f_opendir(const char *path) {
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -416,7 +416,7 @@ int f_mkdir(const char *path, int permission) {
 		errno = EINVAL;
 		return -1;
 	}
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
