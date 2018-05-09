@@ -738,9 +738,12 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 		return subfile;
 	}
 
-	subfile = f_readdir(dir_fd);
+	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
+	if(open_files[dir_fd].offset < file_size) {
+		subfile = f_readdir(dir_fd);
+	}
 	printf("---- %d %c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2]);
-	while(subfile.node >=0 && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
+	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
 		printf("%d %c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2]);
 	}
