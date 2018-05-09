@@ -856,6 +856,7 @@ void test_f_readdir_crazy() {
 	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
+		printf("%d\n", i);
 		assert(subfile.node >= 0);
 	}
 
