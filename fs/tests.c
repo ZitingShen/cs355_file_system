@@ -811,11 +811,16 @@ void test_f_readdir() {
 	print_fd(fd);
 
 	printf("%s\n", "Read /");
-	printf("%s\n", "Should successfully read");
+	printf("%s\n", "Should successfully read /usr");
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
 	print_disks();
+
+	printf("%s\n", "Read / again");
+	printf("%s\n", "Should fail to read");
+	subfile = f_readdir(fd);
+	assert(subfile.node < 0);
 
 	printf("%s\n", "Unmount empty-disk");
 	result = f_umount(0, 0);
@@ -849,10 +854,15 @@ void test_f_readdir_crazy() {
 
 	printf("%s\n", "Read / for 100 times");
 	printf("%s\n", "Should successfully read /usr<index>");
-	for(int i = 0; i < size+2; i++) {
+	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
 		assert(subfile.node >= 0);
 	}
+
+	printf("%s\n", "Read / again");
+	printf("%s\n", "Should fail to read");
+	subfile = f_readdir(fd);
+	assert(subfile.node < 0);
 
 	printf("%s\n", "Unmount empty-disk");
 	result = f_umount(0, 0);
