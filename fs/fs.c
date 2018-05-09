@@ -65,7 +65,7 @@ int f_open(const char *path, const char *mode) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
@@ -91,7 +91,10 @@ int f_open(const char *path, const char *mode) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -255,7 +258,9 @@ void f_rewind(int fd){
 		errno = EBADF;
 	}
 	else{
-		if(cur_disk->inodes[open_files[fd].node].type == TYPE_NORMAL)
+		if(open_files[fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_NORMAL)
 			open_files[fd].offset = 0;
 		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_DIRECTORY)
 			open_files[next_fd].offset = DIR_INIT_OFFSET;
@@ -307,7 +312,7 @@ int f_remove(const char *path) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
@@ -336,7 +341,10 @@ int f_remove(const char *path) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -350,7 +358,7 @@ int f_opendir(const char *path) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
@@ -376,7 +384,10 @@ int f_opendir(const char *path) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -450,7 +461,7 @@ int f_mkdir(const char *path, int permission) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
@@ -519,7 +530,10 @@ int f_mkdir(const char *path, int permission) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -571,7 +585,7 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			cur_disk = disks;
 			root = 0;
 			open_files[next_fd].node = root;
-			open_files[next_fd].offset = DIR_INIT_OFFSET;
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 			open_files[next_fd].mode = O_RDONLY;
 			for (int i = 1; i < OPEN_FILE_MAX; i++){ //initialize the open file table
 				open_files[i].node = -1;
@@ -847,7 +861,10 @@ int remove_directory(int dir_fd) {
 			|| subfile.node == cur_disk->inodes[open_files[dir_fd].node].parent) {
 		} else if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 			open_files[next_fd].node = subfile.node;
-			open_files[next_fd].offset = DIR_INIT_OFFSET;
+			if(subfile.node == 0)
+				open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+			else
+				open_files[next_fd].offset = DIR_INIT_OFFSET;
 			open_files[next_fd].mode = O_RDONLY;
 			int target_fd = next_fd;
 			if(increment_next_fd() < 0) {
