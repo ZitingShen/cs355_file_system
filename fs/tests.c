@@ -506,6 +506,10 @@ void test_f_opendir_root() {
 	result = f_opendir("/");
 	assert(result >= 0);
 	print_fd(result);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_absolute() {
