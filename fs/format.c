@@ -157,7 +157,7 @@ int format(const char *file_name, int file_size) {
 			return -1;
 		}
 
-		for(int i = 0; i < FREE_RESERVE_MAX && counter >= 0; i++, counter--) {
+		for(int i = 0; i < FREE_RESERVE_MAX && counter > 0; i++, counter--) {
 			out = write(fd, &counter, sizeof(int));
 			if(out != sizeof(int)) {
 				return -1;
