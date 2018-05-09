@@ -803,13 +803,13 @@ int main() {
 	// test_f_readdir();
 	// printf("\n");
 
-	printf("%s\n", "test read root directory for 600000 times");
-	test_f_readdir_crazy();
-	printf("\n");
-
-	// printf("%s\n", "test open /usr directory");
-	// test_f_opendir_absolute();
+	// printf("%s\n", "test read root directory for 600000 times");
+	// test_f_readdir_crazy();
 	// printf("\n");
+
+	printf("%s\n", "test open /usr directory");
+	test_f_opendir_absolute();
+	printf("\n");
 
 	// printf("%s\n", "test open /usr/bin directory");
 	// test_f_opendir_absolute_nested();
