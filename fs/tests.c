@@ -795,13 +795,13 @@ int main() {
 	// test_f_mkdir();
 	// printf("\n");
 
-	printf("%s\n", "test close root directory");
-	test_f_closedir();
-	printf("\n");
-
-	// printf("%s\n", "test read root directory");
-	// test_f_readdir();
+	// printf("%s\n", "test close root directory");
+	// test_f_closedir();
 	// printf("\n");
+
+	printf("%s\n", "test read root directory");
+	test_f_readdir();
+	printf("\n");
 
 	// printf("%s\n", "test read root directory for 600000 times");
 	// test_f_readdir_crazy();
