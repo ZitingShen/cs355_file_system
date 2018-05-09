@@ -825,13 +825,13 @@ int main() {
 	// test_f_seek();
 	// printf("\n");
 
-	printf("%s\n", "test rewind root directory");
-	test_f_rewind();
-	printf("\n");
-
-	// printf("%s\n", "test stat root directory");
-	// test_f_stat();
+	// printf("%s\n", "test rewind root directory");
+	// test_f_rewind();
 	// printf("\n");
+
+	printf("%s\n", "test stat root directory");
+	test_f_stat();
+	printf("\n");
 
 	// printf("%s\n", "test create and open /design.txt");
 	// test_f_open();
@@ -857,7 +857,6 @@ int main() {
 	// printf("%s\n", "the int should be the inode index of /usr");
 	// test_f_read();
 	// printf("\n");
-
 
 	// printf("%s\n", "test write an integer 4242 into /design.txt.");
 	// test_f_write();
