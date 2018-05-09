@@ -439,6 +439,7 @@ int f_mkdir(const char *path, int permission) {
 					free(path_copy);
 					return -1;
 				} else {
+					free(path_copy);
 					return 0;
 				}
 			} else {
