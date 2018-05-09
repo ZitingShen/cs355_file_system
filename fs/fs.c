@@ -842,7 +842,7 @@ int remove_directory(int dir_fd) {
 	subfile = f_readdir(dir_fd);
 	while(subfile.node >=0) {
 		if(strcmp(subfile.file_name, self_dir) == 0 
-			|| strcmp(subfile.file_name, parent_dir)) {
+			|| strcmp(subfile.file_name, parent_dir) == 0) {
 		} else if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 			open_files[next_fd].node = subfile.node;
 			open_files[next_fd].offset = 0;
