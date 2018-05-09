@@ -39,7 +39,8 @@ swap region
 ******************************************************/
 
 int format(const char *file_name, int file_size) {
-	int fd, out;
+	int fd = -1;
+	int out = -1;
 
 	fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if(fd == -1) {
