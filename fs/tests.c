@@ -870,9 +870,9 @@ int main() {
 	// printf("\n");
 
 	// !!!! another error in valgrind for mysterious reason
-	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
-	test_f_write_multiple_times();
-	printf("\n");
+	// printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
+	// test_f_write_multiple_times();
+	// printf("\n");
 
 	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
@@ -892,8 +892,8 @@ int main() {
 	// printf("\n");
 
 	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
-	// printf("%s\n", "test of read and write on iblocks.");
-	// test_f_write_i3block();
-	// printf("\n");
+	printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
+	printf("%s\n", "test of read and write on iblocks.");
+	test_f_write_i3block();
+	printf("\n");
 }
