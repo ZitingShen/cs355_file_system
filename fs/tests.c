@@ -799,13 +799,13 @@ int main() {
 	// test_f_closedir();
 	// printf("\n");
 
-	printf("%s\n", "test read root directory");
-	test_f_readdir();
-	printf("\n");
-
-	// printf("%s\n", "test read root directory for 600000 times");
-	// test_f_readdir_crazy();
+	// printf("%s\n", "test read root directory");
+	// test_f_readdir();
 	// printf("\n");
+
+	printf("%s\n", "test read root directory for 600000 times");
+	test_f_readdir_crazy();
+	printf("\n");
 
 	// printf("%s\n", "test open /usr directory");
 	// test_f_opendir_absolute();
