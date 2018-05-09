@@ -9,6 +9,8 @@ int uid;
 void test_mount_umount() {
 	int result;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk and print all disks");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -23,6 +25,8 @@ void test_mount_umount() {
 void test_f_open() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -42,6 +46,8 @@ void test_f_open() {
 void test_f_open_nested() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -65,6 +71,8 @@ void test_f_open_nested() {
 void test_f_open_relative() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -94,6 +102,8 @@ void test_f_open_existing() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -122,6 +132,8 @@ void test_f_close() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -144,6 +156,8 @@ void test_f_close() {
 void test_f_read() {
 	int result;
 	int fd, fd_usr;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -176,13 +190,11 @@ void test_f_read() {
 	assert(result == 0);
 }
 
-void test_f_read_more() {
-	// TODO
-}
-
 void test_f_write() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -217,6 +229,8 @@ void test_f_write() {
 void test_f_write_multiple_times() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -257,6 +271,8 @@ void test_f_write_multiple_times() {
 void test_f_write_multiple_bytes() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -299,6 +315,8 @@ void test_f_write_iblocks() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -339,6 +357,8 @@ void test_f_write_iblocks() {
 void test_f_write_i2block() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE*100);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -383,6 +403,8 @@ void test_f_write_i3block() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE*100);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -426,6 +448,8 @@ void test_f_seek() {
 	int result;
 	int fd;
 	struct file_entry subfile;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -477,6 +501,8 @@ void test_f_rewind() {
 	int fd;
 	struct file_entry subfile;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -526,6 +552,8 @@ void test_f_stat() {
 	int fd;
 	struct stat buf;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -555,6 +583,8 @@ void test_f_remove() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -577,6 +607,8 @@ void test_f_remove_crazy() {
 	int fd;
 	char filename[12];
 	int size = 100;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -608,6 +640,8 @@ void test_f_remove_crazy() {
 void test_f_opendir_root() {
 	int result;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -630,6 +664,8 @@ void test_f_opendir_absolute() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -651,6 +687,8 @@ void test_f_opendir_absolute() {
 void test_f_opendir_absolute_nested() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -683,6 +721,8 @@ void test_f_opendir_absolute_nested() {
 void test_f_opendir_relative() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -717,6 +757,8 @@ void test_f_readdir() {
 	int result;
 	int fd;
 	struct file_entry subfile;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -755,6 +797,8 @@ void test_f_readdir_crazy() {
 	char filename[12];
 	int size = 100;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -792,6 +836,8 @@ void test_f_closedir() {
 	int result;
 	int fd;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -814,6 +860,8 @@ void test_f_closedir() {
 void test_f_mkdir() {
 	int result;
 
+	format("empty-disk", DEFAULT_DISK_SIZE);
+
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
@@ -831,6 +879,8 @@ void test_f_mkdir() {
 void test_f_rmdir() {
 	int result;
 	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE);
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -860,127 +910,127 @@ void test_f_rmdir() {
 }
 
 int main() {
-	// printf("%s\n", "test f_mount and f_umount");
-	// test_mount_umount();
-	// printf("\n");
+	printf("%s\n", "test f_mount and f_umount");
+	test_mount_umount();
+	printf("\n");
 
-	// printf("%s\n", "test open root directory");
-	// test_f_opendir_root();
-	// printf("\n");
+	printf("%s\n", "test open root directory");
+	test_f_opendir_root();
+	printf("\n");
 
-	// printf("%s\n", "test make directory under the root directory");
-	// test_f_mkdir();
-	// printf("\n");
+	printf("%s\n", "test make directory under the root directory");
+	test_f_mkdir();
+	printf("\n");
 
-	// printf("%s\n", "test close root directory");
-	// test_f_closedir();
-	// printf("\n");
+	printf("%s\n", "test close root directory");
+	test_f_closedir();
+	printf("\n");
 
-	// printf("%s\n", "test read root directory");
-	// test_f_readdir();
-	// printf("\n");
+	printf("%s\n", "test read root directory");
+	test_f_readdir();
+	printf("\n");
 
-	// printf("%s\n", "test read root directory for 100 times");
-	// test_f_readdir_crazy();
-	// printf("\n");
+	printf("%s\n", "test read root directory for 100 times");
+	test_f_readdir_crazy();
+	printf("\n");
 
-	// printf("%s\n", "test open /usr directory");
-	// test_f_opendir_absolute();
-	// printf("\n");
+	printf("%s\n", "test open /usr directory");
+	test_f_opendir_absolute();
+	printf("\n");
 
-	// !!!! error in valgrind for mysterious reason
-	// printf("%s\n", "test open /usr/bin directory");
-	// test_f_opendir_absolute_nested();
-	// printf("\n");
+	!!!! error in valgrind for mysterious reason
+	printf("%s\n", "test open /usr/bin directory");
+	test_f_opendir_absolute_nested();
+	printf("\n");
 
-	// !!!! error in valgrind for mysterious reason
-	// printf("%s\n", "test open /usr/bin directory by relative path");
-	// test_f_opendir_relative();
-	// printf("\n");
+	!!!! error in valgrind for mysterious reason
+	printf("%s\n", "test open /usr/bin directory by relative path");
+	test_f_opendir_relative();
+	printf("\n");
 
-	// printf("%s\n", "test seek root directory");
-	// test_f_seek();
-	// printf("\n");
+	printf("%s\n", "test seek root directory");
+	test_f_seek();
+	printf("\n");
 
-	// printf("%s\n", "test rewind root directory");
-	// test_f_rewind();
-	// printf("\n");
+	printf("%s\n", "test rewind root directory");
+	test_f_rewind();
+	printf("\n");
 
-	// !!!! error in valgrind for mysterious reason
-	// printf("%s\n", "test stat root directory");
-	// test_f_stat();
-	// printf("\n");
+	!!!! error in valgrind for mysterious reason
+	printf("%s\n", "test stat root directory");
+	test_f_stat();
+	printf("\n");
 
-	// !!!! error in valgrind for mysterious reason
-	// printf("%s\n", "test create and open /design.txt");
-	// test_f_open();
-	// printf("\n"); 
+	!!!! error in valgrind for mysterious reason
+	printf("%s\n", "test create and open /design.txt");
+	test_f_open();
+	printf("\n"); 
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test create and open /usr/design.txt");
-	// test_f_open_nested();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test create and open /usr/design.txt");
+	test_f_open_nested();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test create and open /usr/design.txt by its relative path");
-	// test_f_open_relative();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test create and open /usr/design.txt by its relative path");
+	test_f_open_relative();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test close /design.txt after opening it");
-	// test_f_close();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test close /design.txt after opening it");
+	test_f_close();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test open existing /design.txt after creating it");
-	// test_f_open_existing();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test open existing /design.txt after creating it");
+	test_f_open_existing();
+	printf("\n");
 
-	// printf("%s\n", "create /usr, and read an int from /.");
-	// printf("%s\n", "the int should be the inode index of /usr");
-	// test_f_read();
-	// printf("\n");
+	printf("%s\n", "create /usr, and read an int from /.");
+	printf("%s\n", "the int should be the inode index of /usr");
+	test_f_read();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer 4242 into /design.txt.");
-	// test_f_write();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write an integer 4242 into /design.txt.");
+	test_f_write();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
-	// test_f_write_multiple_times();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
+	test_f_write_multiple_times();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
-	// test_f_write_multiple_bytes();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
+	test_f_write_multiple_bytes();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer array of size 2000 into /design.txt.");
-	// printf("%s\n", "test of read and write on iblocks.");
-	// test_f_write_iblocks();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write an integer array of size 2000 into /design.txt.");
+	printf("%s\n", "test of read and write on iblocks.");
+	test_f_write_iblocks();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
-	// printf("%s\n", "test of read and write on iblocks.");
-	// test_f_write_i2block();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
+	printf("%s\n", "test of read and write on iblocks.");
+	test_f_write_i2block();
+	printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	// printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
-	// printf("%s\n", "test of read and write on iblocks.");
-	// test_f_write_i3block();
-	// printf("\n");
+	!!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
+	printf("%s\n", "test of read and write on iblocks.");
+	test_f_write_i3block();
+	printf("\n");
 
-	// printf("%s\n", "test create and remove /design.txt");
-	// test_f_remove();
-	// printf("\n");
+	printf("%s\n", "test create and remove /design.txt");
+	test_f_remove();
+	printf("\n");
 
-	// printf("%s\n", "test create 100 files and remove them");
-	// test_f_remove_crazy();
-	// printf("\n");
+	printf("%s\n", "test create 100 files and remove them");
+	test_f_remove_crazy();
+	printf("\n");
 
 	printf("%s\n", "test create /usr and a bunch subfiles/subdirectories and remove /usr");
 	test_f_rmdir();
