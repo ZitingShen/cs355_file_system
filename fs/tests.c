@@ -859,15 +859,14 @@ int main() {
 	// test_f_open_existing();
 	// printf("\n");
 
-	// !!!! another error in valgrind for mysterious reason
-	printf("%s\n", "create /usr, and read an int from /.");
-	printf("%s\n", "the int should be the inode index of /usr");
-	test_f_read();
-	printf("\n");
-
-	// printf("%s\n", "test write an integer 4242 into /design.txt.");
-	// test_f_write();
+	// printf("%s\n", "create /usr, and read an int from /.");
+	// printf("%s\n", "the int should be the inode index of /usr");
+	// test_f_read();
 	// printf("\n");
+
+	printf("%s\n", "test write an integer 4242 into /design.txt.");
+	test_f_write();
+	printf("\n");
 
 	// printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
 	// test_f_write_multiple_times();
