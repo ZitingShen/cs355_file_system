@@ -11,6 +11,7 @@
 #define FILE_INDEX_LENGTH	sizeof(int)
 #define FILE_NAME_LENGTH	12
 #define	FILE_ENTRY_SIZE		(FILE_INDEX_LENGTH+FILE_NAME_LENGTH)
+#define DIR_INIT_OFFSET		2
 
 struct disk_image {
 	int id;
