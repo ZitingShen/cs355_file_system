@@ -8,7 +8,8 @@ extern pid_t shell_pid;
 using namespace std;
 
 bool evaluate (string *command, vector<vector<string>> *parsed_segments){
-	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit"};
+	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir"
+		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "unmount"};
 	
 	bool cont = true;
 	int len = parsed_segments->size();
@@ -318,7 +319,8 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 	}
 	return true;
 }
-
+/*built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir"
+		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "unmount"};*/
 bool built_in_exec(vector<string> argv) {
 	string cmd = argv.front();
 	if(cmd.compare("kill") == 0) {
@@ -333,7 +335,26 @@ bool built_in_exec(vector<string> argv) {
 		return history(argv);
 	} else if(cmd.compare("exit") == 0) {
 		return false;
-	}
+	} else if(cmd.compare("ls") == 0) {
+		return ls();
+	} else if(cmd.compare("mkdir") == 0) {
+		return mkdir(argv);
+	} else if(cmd.compare("rmdir") == 0) {
+		return rmdir(argv);
+	} else if(cmd.compare("cd") == 0) {
+		return cd(argv);
+	} else if(cmd.compare("pwd") == 0) {
+		return pwd();
+	} else if(cmd.compare("cat") == 0) {
+		return cat(argv);
+	} else if(cmd.compare("more") == 0) {
+		return more(argv);
+	} else if(cmd.compare("rm") == 0) {
+		return rm(argv);
+	} else if(cmd.compare("mount") == 0) {
+		return mount(argv);
+	} else if(cmd.compare("unmount") == 0) {
+		return unmount(argv);
 	return true;
 }
 
