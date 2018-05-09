@@ -426,7 +426,6 @@ struct file_entry f_readdir(int fd) {
 	int block_num = open_files[fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
 
-	printf("%d %d\n", block_num, block_rmd);
 	struct data_block target_block = load_block(open_files[fd].node, block_num);
 	subfile.node = *((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE));
 	memcpy(subfile.file_name, target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, 
