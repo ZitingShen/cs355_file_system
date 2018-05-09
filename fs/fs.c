@@ -464,6 +464,32 @@ int f_mkdir(const char *path, int permission) {
 					return -1;
 				} else {
 					free(path_copy);
+					subfile = find_subfile(next_fd, seg);
+					char file_name[FILE_NAME_LENGTH];
+					bzero(file_name, FILE_NAME_LENGTH);
+					open_files[next_fd].offset = 0;
+
+					file_name[0] = '.';
+					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						return -1;
+					}
+					if(f_write_helper(filename, FILE_NAME_LENGTH, 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						return -1;
+					}
+					open_files[next_fd].offset++;
+					cur_disk->inodes[open_files[next_fd].node].size++;
+
+					file_name[1] = '.';
+					if(f_write_helper(&(open_files[next_fd].node), sizeof(int), 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						return -1;
+					}
+					if(f_write_helper(filename, FILE_NAME_LENGTH, 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						return -1;
+					}
+					open_files[next_fd].offset++;
+					cur_disk->inodes[open_files[next_fd].node].size++;
+					write_inode(open_files[next_fd].node);
+
 					return 0;
 				}
 			} else {
