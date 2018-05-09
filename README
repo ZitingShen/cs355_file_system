@@ -27,8 +27,9 @@ Limitations:
 
 2. The disk can have at most 4294967295 files, and each file has at most 12 characters name.
 
+3. Valgrind reported some memory off-by-one errors when handling the filenames,
+but I checked and everything seemed to be fine. I tried to fix them, but more errors poped up, so I just gave up.
+
 
 Todos:
 1. Check permission for all disk operations.
-
-2. Valgrind all the tests. (almost done)
