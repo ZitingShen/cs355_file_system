@@ -1018,7 +1018,6 @@ void write_i2block(int i2block_addr, int *block_num, void * data, int add_free[4
 		iblock_addr = find_free_block();
 		((int *)i2block.data)[i] = iblock_addr;
 		write_data(&i2block);
-		i2block = load_data_block(i2block_addr);
 	} else{
 		iblock_addr = ((int *) i2block.data)[i];
 	}
