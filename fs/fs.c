@@ -137,6 +137,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 
 				temp_data_block = load_block(open_files[fd].node, first_block);
 				memcpy(ptr + cur_out_offset, temp_data_block.data + first_block_rem, copy_size);
+				free(temp_data_block.data);
 
 				cur_out_offset += copy_size;
 				rem_size -= copy_size;
@@ -320,10 +321,12 @@ int f_remove(const char *path) {
 		}
 		if(strend(path, seg)) {
 			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
+				free(path_copy);
 				return -1;
 			}
 
 			if(remove_file(next_fd, subfile.node) != 0) {
+				free(path_copy);
 				return -1;
 			}
 		}
@@ -333,6 +336,7 @@ int f_remove(const char *path) {
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
+	free(path_copy);
 	return 0;
 }
 
