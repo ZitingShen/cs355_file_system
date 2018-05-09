@@ -787,13 +787,13 @@ int main() {
 	// test_mount_umount();
 	// printf("\n");
 
-	printf("%s\n", "test open root directory");
-	test_f_opendir_root();
-	printf("\n");
-
-	// printf("%s\n", "test make directory under the root directory");
-	// test_f_mkdir();
+	// printf("%s\n", "test open root directory");
+	// test_f_opendir_root();
 	// printf("\n");
+
+	printf("%s\n", "test make directory under the root directory");
+	test_f_mkdir();
+	printf("\n");
 
 	// printf("%s\n", "test close root directory");
 	// test_f_closedir();
