@@ -687,9 +687,9 @@ void test_f_rmdir() {
 }
 
 int main() {
-	// printf("%s\n", "test f_mount and f_umount");
-	// test_mount_umount();
-	// printf("\n");
+	printf("%s\n", "test f_mount and f_umount");
+	test_mount_umount();
+	printf("\n");
 
 	// printf("%s\n", "test open root directory");
 	// test_f_opendir_root();
@@ -707,9 +707,9 @@ int main() {
 	// test_f_readdir();
 	// printf("\n");
 
-	printf("%s\n", "test read root directory for 600000 times");
-	test_f_readdir_crazy();
-	printf("\n");
+	// printf("%s\n", "test read root directory for 600000 times");
+	// test_f_readdir_crazy();
+	// printf("\n");
 
 	// printf("%s\n", "test open /usr directory");
 	// test_f_opendir_absolute();
