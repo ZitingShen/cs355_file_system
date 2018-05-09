@@ -470,23 +470,27 @@ int f_mkdir(const char *path, int permission) {
 					open_files[next_fd].offset = 0;
 
 					file_name[0] = '.';
-					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+					if(f_write_helper(&(subfile.node), sizeof(int), 1, subfile.node, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
 						return -1;
 					}
-					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 						return -1;
 					}
-					open_files[next_fd].offset++;
+					open_files[subfile.node].offset++;
 					cur_disk->inodes[subfile.node].size++;
 
 					file_name[1] = '.';
-					if(f_write_helper(&(open_files[next_fd].node), sizeof(int), 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+					if(f_write_helper(&(open_files[next_fd].node), sizeof(int), 1, subfile.node, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
 						return -1;
 					}
-					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 						return -1;
 					}
-					open_files[next_fd].offset++;
+					open_files[subfile.node].offset++;
 					cur_disk->inodes[subfile.node].size++;
 					write_inode(open_files[next_fd].node);
 
