@@ -740,6 +740,7 @@ int remove_file(int dir_fd, int file_inode_idx) {
 	if(last_block_rmd == 0) {
 		struct data_block temp_block = load_block(dir_inode_idx, last_block_ind);
 		add_free_block(temp_block.data_addr);
+		free(temp_block.data);
 	}
 
 	/*deal with file inode*/
