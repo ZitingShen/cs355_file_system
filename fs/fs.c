@@ -506,7 +506,7 @@ int f_mkdir(const char *path, int permission) {
 						free(path_copy);
 						return -1;
 					}
-					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 						free(path_copy);
 						return -1;
@@ -520,7 +520,7 @@ int f_mkdir(const char *path, int permission) {
 						free(path_copy);
 						return -1;
 					}
-					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 						free(path_copy);
 						return -1;
@@ -739,14 +739,18 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	}
 
 	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
+	printf("%d %d\n", open_files[dir_fd].offset, file_size);
 	if(open_files[dir_fd].offset < file_size) {
 		subfile = f_readdir(dir_fd);
 	}
+	printf("%d %d\n", open_files[dir_fd].offset, file_size);
 	printf("---- %d %c%c%c%c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2], subfile.file_name[3], subfile.file_name[4], subfile.file_name[5]);
 	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
 		printf("%d %c%c%c%c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2], subfile.file_name[3], subfile.file_name[4], subfile.file_name[5]);
 	}
+	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
+		subfile.node = -1;
 	return subfile;
 }
 
