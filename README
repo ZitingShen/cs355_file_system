@@ -31,6 +31,4 @@ Limitations:
 Todos:
 1. Check permission for all disk operations.
 
-2. Valgrind all the tests.
-
-3. Check if f_write can truncate the file size arbitrarily.
+2. Valgrind all the tests. (almost done)

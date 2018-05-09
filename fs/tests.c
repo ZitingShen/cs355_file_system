@@ -552,7 +552,57 @@ void test_f_stat() {
 }
 
 void test_f_remove() {
-	// TODO
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make file /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(result >= 0);
+
+	result = f_close(fd);
+	assert(result == 0);
+
+	printf("%s\n", "Remove file /design.txt");
+	result = f_remove("/design.txt");
+	assert(result == 0);
+	print_disks();
+}
+
+void test_f_remove_crazy() {
+	int result;
+	int fd;
+	char filename[12];
+	int size = 100;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make file /txt<index> for 100 times");
+	for(int i = 0; i < size; i++) {
+		sprintf(filename, "/txt%d", i);
+		fd = f_open(filename, "w");
+		assert(fd >= 0);
+		result = f_close(fd);
+		assert(result == 0);
+	}
+
+	printf("%s\n", "Remove all the files created");
+	for(int i = 0; i < size; i++) {
+		sprintf(filename, "/txt%d", i);
+		result = f_remove(filename);
+		if(result != 0)
+			printf("%d\n", i);
+		assert(result == 0);
+	}
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_root() {
@@ -709,7 +759,7 @@ void test_f_readdir_crazy() {
 	result = f_mount("empty-disk", 0, 0, 0);
 	assert(result == 0);
 
-	printf("%s\n", "Make directory /usr<index> for 99 times");
+	printf("%s\n", "Make directory /usr<index> for 100 times");
 	for(int i = 0; i < size; i++) {
 		sprintf(filename, "/usr%d", i);
 		result = f_mkdir(filename, PERMISSION_DEFAULT);
@@ -721,7 +771,7 @@ void test_f_readdir_crazy() {
 	assert(fd >= 0);
 	print_fd(fd);
 
-	printf("%s\n", "Read / for 99 times");
+	printf("%s\n", "Read / for 100 times");
 	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
@@ -779,7 +829,34 @@ void test_f_mkdir() {
 }
 
 void test_f_rmdir() {
-	// TODO
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr");
+	result = f_mkdir("/usr", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr/bin");
+	result = f_mkdir("/usr/bin", PERMISSION_DEFAULT);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr/design.txt");
+	fd = f_open("/usr/bin", "w");
+	assert(fd >= 0);
+	result = f_close(fd);
+	assert(result == 0);
+
+	printf("%s\n", "Remove directory /usr");
+	result = f_rmdir("/usr");
+	assert(result == 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 int main() {
@@ -803,7 +880,7 @@ int main() {
 	// test_f_readdir();
 	// printf("\n");
 
-	// printf("%s\n", "test read root directory for 600000 times");
+	// printf("%s\n", "test read root directory for 100 times");
 	// test_f_readdir_crazy();
 	// printf("\n");
 
@@ -896,4 +973,16 @@ int main() {
 	// printf("%s\n", "test of read and write on iblocks.");
 	// test_f_write_i3block();
 	// printf("\n");
+
+	// printf("%s\n", "test create and remove /design.txt");
+	// test_f_remove();
+	// printf("\n");
+
+	// printf("%s\n", "test create 100 files and remove them");
+	// test_f_remove_crazy();
+	// printf("\n");
+
+	printf("%s\n", "test create /usr and a bunch subfiles/subdirectories and remove /usr");
+	test_f_rmdir();
+	printf("\n");
 }
