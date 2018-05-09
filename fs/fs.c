@@ -570,6 +570,7 @@ size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int f
 			//if(temp_data_block.data == 0);
 				//set errno???
 				//return -1;???
+			printf("---- %d %d\n", cur_out_offset, copy_size);
 			memcpy(temp_data_block.data + first_block_rem, ptr + cur_out_offset, copy_size);
 			write_block(open_files[fd].node, first_block, temp_data_block.data);
 			free(temp_data_block.data);
