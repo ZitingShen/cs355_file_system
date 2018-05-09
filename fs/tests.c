@@ -663,6 +663,7 @@ void test_f_remove_large() {
 	assert(result == sizeof(int)*size);
 	//print_disks();
 	print_fd(fd);
+	free(arr);
 
 	printf("%s\n", "Remove file /design.txt");
 	result = f_remove("/design.txt");
