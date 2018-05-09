@@ -732,6 +732,16 @@ int remove_file(int dir_fd, int file_inode_idx) {
 	dir_inode->size--;
 	write_inode(dir_inode_idx);
 
+	/* deal with freeblock created (if there is one), didn't change pointer in inode, 
+	but change in inode.size by the caller should suffice in not referencing to the freeblock.*/
+	int N_FILE_ENTRY = cur_disk->sb.size/FILE_ENTRY_SIZE;
+	int last_block_ind = dir_inode->size/N_FILE_ENTRY;
+	int last_block_rmd = dir_inode->size % N_FILE_ENTRY;
+	if(last_block_rmd == 0) {
+		struct temp_block = load_data_block(dir_inode, last_block_ind);
+		add_free_block(temp_block.data_addr);
+	}
+
 	/*deal with file inode*/
 	struct inode *file_inode = &(cur_disk->inodes[file_inode_idx]);
 	file_inode->nlink = 0; //change nlink to zero, assume nlink can be only 0 or 1
@@ -751,8 +761,6 @@ int remove_file(int dir_fd, int file_inode_idx) {
 /*
 1.find file entry and remove it
 2.move the last entry (if there is one) to the hole
-3.deal with freeblock created (if there is one), didn't change pointer in inode, 
-	but change in inode.size by the caller should suffice in not referencing to the freeblock.
 */
 int find_and_remove_entry(int dir_fd, int file_inode_idx){
 	struct file_entry target_subfile, subfile;
