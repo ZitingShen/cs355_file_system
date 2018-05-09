@@ -593,6 +593,7 @@ size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int f
 			remainder += BLOCK_SIZE;
 		}
 
+		bzero(buf, BLOCK_SIZE);
 		memcpy(buf, ptr + cur_out_offset, remainder);
 		write_block(open_files[fd].node, i, buf);
 
