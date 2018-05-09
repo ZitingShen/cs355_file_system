@@ -40,7 +40,7 @@ struct inode {
 
 	int parent; /* inode of parent directory */
 	int permission;  /* permission */
-	char type; /* type of the file */
+	int type; /* type of the file */
 	/******************************************************
     	d 	Directory.
     	l 	Symbolic link.

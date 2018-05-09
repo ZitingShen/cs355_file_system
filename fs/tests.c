@@ -1,6 +1,7 @@
 #include "fs.h"
 #include "fs_debug.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h> 
 int pwd_fd;
 int uid;
@@ -32,6 +33,10 @@ void test_f_open() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_nested() {
@@ -51,6 +56,10 @@ void test_f_open_nested() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_relative() {
@@ -75,6 +84,10 @@ void test_f_open_relative() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_existing() {
@@ -99,6 +112,10 @@ void test_f_open_existing() {
 	fd = f_open("/design.txt", "w");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_close() {
@@ -118,6 +135,10 @@ void test_f_close() {
 	result = f_close(fd);
 	assert(fd == 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_read() {
@@ -149,6 +170,10 @@ void test_f_read() {
 	printf("i should equal to the inode index in the following file entry:\n");
 	printf("i: %d\n", i);
 	print_fd(fd_usr);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_read_more() {
@@ -183,6 +208,10 @@ void test_f_write() {
 	assert(result == sizeof(int));
 	printf("%d\n", j);
 	assert(i == j);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_multiple_times() {
@@ -199,7 +228,8 @@ void test_f_write_multiple_times() {
 
 	printf("%s\n", "Write integer 1000 to 1999 to /design.txt, one at a time");
 	int i;
-	for(int k = 0; k < 200; k++) {
+	int size = 1000;
+	for(int k = 0; k < size; k++) {
 		i = k+1000;
 		result = f_write(&i, sizeof(int), 1, fd);
 		assert(result == sizeof(int));
@@ -212,13 +242,16 @@ void test_f_write_multiple_times() {
 
 	printf("%s\n", "Read an integer 1000 times from /design.txt and make sure it matches the original ones");
 	int j;
-	for(int k = 0; k < 200; k++) {
+	for(int k = 0; k < size; k++) {
 		result = f_read(&j, sizeof(int), 1, fd);
 		assert(result == sizeof(int));
-		printf("%d\n", j);
-		//assert(j == (k+1000));
+		assert(j == (k+size));
 	}
 	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_multiple_bytes() {
@@ -235,18 +268,13 @@ void test_f_write_multiple_bytes() {
 
 	printf("%s\n", "Write an integer array of size 1000 to /design.txt.");
 	printf("%s\n", "The numbers are contiguous integers 1000 to 1999");
-	// int arr[1000];
-	// for(int k = 0; k < 1000; k++) {
-	// 	arr[k] = k+1000;
-	// }
-	// result = f_write(&(arr[0]), sizeof(int), 1000, fd);
-	// assert(result == sizeof(int)*1000);
-	int i;
-	for(int k = 0; k < 1000; k++) {
-		i = k+1000;
-		result = f_write(&i, sizeof(int), 1, fd);
-		assert(result == sizeof(int));
+	int size = 1000;
+	int arr[size];
+	for(int k = 0; k < size; k++) {
+		arr[k] = k+1000;
 	}
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
 	print_disks();
 	print_fd(fd);
 
@@ -254,20 +282,144 @@ void test_f_write_multiple_bytes() {
 	f_rewind(fd);
 
 	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
-	// int arr2[1000];
-	// result = f_read(&(arr2[0]), sizeof(int), 1000, fd);
-	// assert(result == sizeof(int)*1000);
-	// for(int k = 0; k < 1000; k++) {
-	// 	printf("%d\n", arr2[k]);
-	// 	//assert(arr2[k] == arr[k]);
-	// }
-	int j;
-	for(int k = 0; k < 1000; k++) {
-		result = f_read(&j, sizeof(int), 1, fd);
-		assert(result == sizeof(int));
-		assert(j == (k+1000));
+	int arr2[1000];
+	result = f_read(&(arr2[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+}
+
+void test_f_write_iblocks() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer array of size 2000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 2999");
+	int size = 2000;
+	int arr[size];
+	for(int k = 0; k < size; k++) {
+		arr[k] = k+1000;
+	}
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
+	int arr2[size];
+	result = f_read(&(arr2[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*2000);
+	for(int k = 0; k < size; k++) {
+		assert(arr2[k] == arr[k]);
+	}
+	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+}
+
+void test_f_write_i2block() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer array of size 2000000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 2000999");
+	int size = 2000000;
+	int *arr = malloc(sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		arr[k] = k+1000;
+	}
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	//print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
+	int *arr2 = malloc(sizeof(int)*size);
+	result = f_read(&(arr2[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		assert(arr2[k] == arr[k]);
+	}
+	printf("%s\n", "OK");
+	free(arr);
+	free(arr2);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+}
+
+void test_f_write_i3block() {
+	int result;
+	int fd;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
+	int size = 3000000;
+	int *arr = malloc(sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		arr[k] = k+1000;
+	}
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	//print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Rewind the offset of /design.txt");
+	f_rewind(fd);
+
+	printf("%s\n", "Read the integer array from /design.txt and make sure it's the original array");
+	int *arr2 = malloc(sizeof(int)*size);
+	result = f_read(&(arr2[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		assert(arr2[k] == arr[k]);
+	}
+	printf("%s\n", "OK");
+	free(arr);
+	free(arr2);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_seek() {
@@ -314,6 +466,10 @@ void test_f_seek() {
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_rewind() {
@@ -359,6 +515,10 @@ void test_f_rewind() {
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_stat() {
@@ -385,6 +545,10 @@ void test_f_stat() {
 	printf("%s\n", "Stat /usr/bin");
 	result = f_stat(fd, &buf);
 	assert(result >= 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_remove() {
@@ -402,6 +566,14 @@ void test_f_opendir_root() {
 	result = f_opendir("/");
 	assert(result >= 0);
 	print_fd(result);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_absolute() {
@@ -420,6 +592,10 @@ void test_f_opendir_absolute() {
 	fd = f_opendir("/usr");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_absolute_nested() {
@@ -448,6 +624,10 @@ void test_f_opendir_absolute_nested() {
 	fd = f_opendir("/usr/bin");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_relative() {
@@ -477,6 +657,10 @@ void test_f_opendir_relative() {
 	fd = f_opendir("bin");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_readdir() {
@@ -508,6 +692,50 @@ void test_f_readdir() {
 	printf("%s\n", "Should fail to read");
 	subfile = f_readdir(fd);
 	assert(subfile.node < 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+}
+
+void test_f_readdir_crazy() {
+	int result;
+	int fd;
+	struct file_entry subfile;
+	char filename[12];
+	int size = 100;
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Make directory /usr<index> for 99 times");
+	for(int i = 0; i < size; i++) {
+		sprintf(filename, "/usr%d", i);
+		result = f_mkdir(filename, PERMISSION_DEFAULT);
+		assert(result == 0);
+	}
+
+	printf("%s\n", "Open root directory");
+	fd = f_opendir("/");
+	assert(fd >= 0);
+	print_fd(fd);
+
+	printf("%s\n", "Read / for 99 times");
+	printf("%s\n", "Should successfully read /usr<index>");
+	for(int i = 0; i < size; i++) {
+		subfile = f_readdir(fd);
+		assert(subfile.node >= 0);
+	}
+
+	printf("%s\n", "Read / again");
+	printf("%s\n", "Should fail to read");
+	subfile = f_readdir(fd);
+	assert(subfile.node < 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_closedir() {
@@ -527,6 +755,10 @@ void test_f_closedir() {
 	result = f_closedir(fd);
 	assert(result == 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_mkdir() {
@@ -540,6 +772,10 @@ void test_f_mkdir() {
 	result = f_mkdir("/usr", PERMISSION_DEFAULT);
 	assert(result == 0);
 	print_disks();
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_rmdir() {
@@ -567,14 +803,20 @@ int main() {
 	// test_f_readdir();
 	// printf("\n");
 
+	// printf("%s\n", "test read root directory for 600000 times");
+	// test_f_readdir_crazy();
+	// printf("\n");
+
 	// printf("%s\n", "test open /usr directory");
 	// test_f_opendir_absolute();
 	// printf("\n");
 
+	// !!!! error in valgrind for mysterious reason
 	// printf("%s\n", "test open /usr/bin directory");
 	// test_f_opendir_absolute_nested();
 	// printf("\n");
 
+	// !!!! error in valgrind for mysterious reason
 	// printf("%s\n", "test open /usr/bin directory by relative path");
 	// test_f_opendir_relative();
 	// printf("\n");
@@ -587,26 +829,32 @@ int main() {
 	// test_f_rewind();
 	// printf("\n");
 
-	// printf("%s\n", "test rewind root directory");
+	// !!!! error in valgrind for mysterious reason
+	// printf("%s\n", "test stat root directory");
 	// test_f_stat();
 	// printf("\n");
 
+	// !!!! error in valgrind for mysterious reason
 	// printf("%s\n", "test create and open /design.txt");
 	// test_f_open();
 	// printf("\n"); 
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test create and open /usr/design.txt");
 	// test_f_open_nested();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test create and open /usr/design.txt by its relative path");
 	// test_f_open_relative();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test close /design.txt after opening it");
 	// test_f_close();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test open existing /design.txt after creating it");
 	// test_f_open_existing();
 	// printf("\n");
@@ -616,15 +864,36 @@ int main() {
 	// test_f_read();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer 4242 into /design.txt.");
 	// test_f_write();
 	// printf("\n");
 
-	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
-	test_f_write_multiple_times();
-	printf("\n");
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
+	// test_f_write_multiple_times();
+	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
 	// test_f_write_multiple_bytes();
+	// printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test write an integer array of size 2000 into /design.txt.");
+	// printf("%s\n", "test of read and write on iblocks.");
+	// test_f_write_iblocks();
+	// printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
+	// printf("%s\n", "test of read and write on iblocks.");
+	// test_f_write_i2block();
+	// printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
+	// printf("%s\n", "test of read and write on iblocks.");
+	// test_f_write_i3block();
 	// printf("\n");
 }

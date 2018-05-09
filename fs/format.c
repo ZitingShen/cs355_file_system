@@ -153,5 +153,6 @@ int format(const char *file_name, int file_size) {
 			}
 		}
 	}
+	close(fd);
 	return 0;
 }

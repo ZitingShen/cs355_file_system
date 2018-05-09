@@ -18,6 +18,7 @@ struct disk_image *disks = 0;
 struct open_file open_files[OPEN_FILE_MAX];
 int next_fd = 0;
 
+size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int offset_unit);
 int increment_next_fd();
 int convert_mode(const char* mode);
 struct file_entry find_subfile(int dir_fd, char *file_name);
@@ -32,9 +33,8 @@ struct data_block load_indirect_block(int iblock_addr, int block_num);
 struct data_block load_i2block(int i2block_addr, int *block_num);
 struct data_block load_i3block(int i3block_addr, int *block_num);
 
-void write_block(int node_addr, int block_num, void * data);
+int write_block(int node_addr, int block_num, void * data);
 void write_data_block(int block_addr, void * data);
-void write_indirect_block(int iblock_addr, int block_num, void * data, int add_free[4]);
 void write_indirect_block(int iblock_addr, int block_num, void * data, int add_free[4]);
 void write_i2block(int i2block_addr, int *block_num, void * data, int add_free[4]);
 void write_i3block(int i3block_addr, int *block_num, void * data, int add_free[4]);
@@ -43,7 +43,6 @@ int* which_to_find_free (size_t file_block, int block_num);
 void write_superblock();
 void write_inode(int node);
 void write_data(struct data_block *db);
-void write_block();
 
 void clean_all_block(struct inode * file_inode);
 void clean_dblock(int data_block_addr, size_t *rem_size);
@@ -56,15 +55,12 @@ int find_free_block();
 
 int strend(const char *s, const char *t);
 
-// Temporary functions
-void write_block_addr(int inode_addr, int block_num, int block_addr);
-
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
 	if (mode_binary < 0)
 		return -1;
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -150,13 +146,13 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		}
 
 		int num_block = rem_size / BLOCK_SIZE;
-			if (rem_size % BLOCK_SIZE != 0){
-				num_block ++;
-			}
+		if (rem_size % BLOCK_SIZE != 0){
+			num_block ++;
+		}
 
 		size_t remainder;
 		/*read from data blocks*/
-		for (int i = first_block; i < num_block; i++){
+		for (int i = first_block; i < first_block + num_block; i++){
 			if (rem_size <= 0) break;
 			temp_data_block = load_block(open_files[fd].node, i);
 			if(temp_data_block.data == 0) break;
@@ -173,7 +169,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 			free(temp_data_block.data);
 		}
 		open_files[fd].offset += nitems * size;
-		return nitems * size;
+		return read_size;
 	}
 }
 
@@ -182,79 +178,25 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		errno = EBADF;
 		return -1;
 	}
+
 	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return -1;
-	}
-	else{
+	} else{
 		struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
-		int BLOCK_SIZE = (cur_disk->sb).size;
-		//int N_POINTER = BLOCK_SIZE / sizeof(int);
-		size_t rem_size = size * nitems; //remaining read size
 		int file_offset = open_files[fd].offset; 
-		size_t cur_out_offset = 0;
-		//if offset is ahead of size, return error
-		if (cur_inode -> size < file_offset){
-			errno = EADDRNOTAVAIL;
-			return -1;
-		}
-		struct data_block temp_data_block;
-		int first_block = 0;
 
-		/*if there is offset, need to deal with the first data block to be read*/
-		if (file_offset != 0){
-			size_t first_block_rem = file_offset % BLOCK_SIZE;
-			first_block = file_offset / BLOCK_SIZE;
-			if (first_block_rem != 0){
-				size_t copy_size = BLOCK_SIZE - first_block_rem;
-
-				if (rem_size < copy_size) copy_size = rem_size;
-				temp_data_block = load_block(open_files[fd].node, first_block);
-				//if(temp_data_block.data == 0);
-					//set errno???
-					//return -1;???
-				memcpy(temp_data_block.data + first_block_rem, ptr + cur_out_offset, copy_size);
-				write_block(open_files[fd].node, first_block, temp_data_block.data);
-
-				cur_out_offset += copy_size;
-				rem_size -= copy_size;
-				first_block ++;
-			}
-		}
-
-		int num_block = rem_size / BLOCK_SIZE;
-		if (rem_size % BLOCK_SIZE != 0){
-			num_block ++;
-		}
-
-		size_t remainder;
-		char buf[BLOCK_SIZE];
-		/*read from data blocks*/
-		for (int i = first_block; i < num_block; i++){
-			if (rem_size <= 0) break;
-
-			remainder = rem_size % BLOCK_SIZE;
-			if (remainder == 0){
-				remainder += BLOCK_SIZE;
-			}
-
-			memcpy(buf, ptr + cur_out_offset, remainder);
-			write_block(open_files[fd].node, i, buf);
-
-			cur_out_offset += remainder;
-			rem_size -= remainder;
-
-		}
-		//advance offset
-		open_files[fd].offset += nitems * size;
+		size_t write_size = f_write_helper(ptr, size, nitems, fd, open_files[fd].offset);
+		// change offset
+		open_files[fd].offset += write_size;
 
 		//change size if we are writing outside of original data block range
-		if (file_offset + nitems * size > cur_inode->size){
-			cur_inode -> size = file_offset + nitems * size;
+		if (file_offset + write_size > cur_inode->size){
+			cur_inode -> size = file_offset + write_size;
 			write_inode(open_files[fd].node);
 		}
 		
-		return nitems * size;
+		return write_size;
 	}
 }
 
@@ -375,7 +317,7 @@ int f_remove(const char *path) {
 }
 
 int f_opendir(const char *path) {
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -435,12 +377,10 @@ struct file_entry f_readdir(int fd) {
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
 	int block_num = open_files[fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
-	if(block_rmd != 0) {
-		block_num++;
-	}
+
 	struct data_block target_block = load_block(open_files[fd].node, block_num);
 	subfile.node = *((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE));
-	strncpy(subfile.file_name, target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, 
+	memcpy(subfile.file_name, target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, 
 		FILE_NAME_LENGTH);
 	free(target_block.data);
 
@@ -476,7 +416,8 @@ int f_mkdir(const char *path, int permission) {
 		errno = EINVAL;
 		return -1;
 	}
-	char *path_copy = malloc(strlen(path));
+	char *path_copy = (char *) malloc(FILE_NAME_LENGTH+1);
+	bzero(path_copy, FILE_NAME_LENGTH+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -498,6 +439,7 @@ int f_mkdir(const char *path, int permission) {
 					free(path_copy);
 					return -1;
 				} else {
+					free(path_copy);
 					return 0;
 				}
 			} else {
@@ -525,8 +467,9 @@ int f_mkdir(const char *path, int permission) {
 
 int f_rmdir(const char *path) {
 	int fd = f_opendir(path);
-	if(fd < 0)
+	if(fd < 0) {
 		return -1;
+	}
 	if(remove_directory(fd) < 0)
 		return -1;
 	f_closedir(fd);
@@ -602,6 +545,67 @@ int f_umount(const char *target, int flags) {
 }
 
 //****************************HELPER FUNCTIONS******************
+size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int file_offset){
+	struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
+	int BLOCK_SIZE = (cur_disk->sb).size;
+	//int N_POINTER = BLOCK_SIZE / sizeof(int);
+	size_t rem_size = size * nitems; //remaining read size
+	size_t cur_out_offset = 0;
+	//if offset is ahead of size, return error
+	if (cur_inode -> size < open_files[fd].offset){
+		errno = EADDRNOTAVAIL;
+		return -1;
+	}
+	struct data_block temp_data_block;
+	int first_block = 0;
+	/*if there is offset, need to deal with the first data block to be read*/
+	if (file_offset != 0){
+		size_t first_block_rem = file_offset % BLOCK_SIZE;
+		first_block = file_offset / BLOCK_SIZE;
+		if (first_block_rem != 0){
+			size_t copy_size = BLOCK_SIZE - first_block_rem;
+
+			if (rem_size < copy_size) copy_size = rem_size;
+			temp_data_block = load_block(open_files[fd].node, first_block);
+			//if(temp_data_block.data == 0);
+				//set errno???
+				//return -1;???
+			memcpy(temp_data_block.data + first_block_rem, ptr + cur_out_offset, copy_size);
+			write_block(open_files[fd].node, first_block, temp_data_block.data);
+			free(temp_data_block.data);
+			cur_out_offset += copy_size;
+			rem_size -= copy_size;
+			first_block++;
+		}
+	}
+
+	int num_block = rem_size / BLOCK_SIZE;
+	if (rem_size % BLOCK_SIZE != 0){
+		num_block ++;
+	}
+
+	size_t remainder;
+	char buf[BLOCK_SIZE];
+	/*read from data blocks*/
+	for (int i = first_block; i < first_block + num_block; i++){
+		if (rem_size <= 0) break;
+
+		remainder = rem_size % BLOCK_SIZE;
+		if (remainder == 0){
+			remainder += BLOCK_SIZE;
+		}
+
+		bzero(buf, BLOCK_SIZE);
+		memcpy(buf, ptr + cur_out_offset, remainder);
+		write_block(open_files[fd].node, i, buf);
+
+		cur_out_offset += remainder;
+		rem_size -= remainder;
+	}
+	
+	return nitems * size;
+}
+
 int increment_next_fd() {
 	int old = next_fd;
 	next_fd = (next_fd+1)%OPEN_FILE_MAX;
@@ -679,23 +683,12 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
-	int block_num = (cur_disk->inodes[open_files[dir_fd].node].size) / FILE_ENTRY_N;
-	int block_rmd = (cur_disk->inodes[open_files[dir_fd].node].size) % FILE_ENTRY_N;
-	struct data_block target_block;
-	if(block_rmd != 0) { // no need to create a new data block
-		block_num++;
-		target_block = load_block(open_files[dir_fd].node, block_num);
-	} else { // need to create a new data block
-		target_block.data = malloc(cur_disk->sb.size);
-		target_block.data_addr = find_free_block();
-		write_block_addr(open_files[dir_fd].node, block_num, target_block.data_addr);
+	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+		return -1;
 	}
-	*((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE)) = new_inode;
-	strncpy(target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, filename,
-		FILE_NAME_LENGTH);
-	write_data(&target_block); // write data back to disk
-	free(target_block.data);
+	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+		return -1;
+	}
 
 	cur_disk->inodes[open_files[dir_fd].node].size++;
 	write_inode(open_files[dir_fd].node); // write parent inode back to disk
@@ -833,7 +826,7 @@ struct data_block load_block(int node_addr, int block_num) {
 	int block_addr;
 
 	// when in direct blocks
-	if(block_num <= N_DBLOCKS) {
+	if(block_num < N_DBLOCKS) {
 		block_addr = node->dblocks[block_num];
 		return load_data_block(block_addr);
 	}
@@ -841,7 +834,7 @@ struct data_block load_block(int node_addr, int block_num) {
 
 	// when in indirect blocks
 	int i = 0;
-	while(block_num > POINTER_N && i < N_IBLOCKS) {
+	while(block_num >= POINTER_N && i < N_IBLOCKS) {
 		block_num -= POINTER_N;
 		i++;
 	}
@@ -853,8 +846,8 @@ struct data_block load_block(int node_addr, int block_num) {
 	if(block_num < POINTER_N*POINTER_N) {
 		return load_i2block(node->i2block, &block_num);
 	}
-	block_num -= POINTER_N*POINTER_N;
 
+	block_num -= POINTER_N*POINTER_N;
 	// when in i3block
 	if(block_num < POINTER_N*POINTER_N*POINTER_N) {
 		return load_i3block(node->i3block, &block_num);
@@ -889,8 +882,8 @@ struct data_block load_indirect_block(int iblock_addr, int block_num) {
 struct data_block load_i2block(int i2block_addr, int *block_num) {
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int i = 0;
-	while((*block_num) > POINTER_N) {
-		block_num -= POINTER_N;
+	while((*block_num) >= POINTER_N) {
+		(*block_num) -= POINTER_N;
 		i++;
 	}
 	struct data_block i2block = load_data_block(i2block_addr);
@@ -902,8 +895,8 @@ struct data_block load_i2block(int i2block_addr, int *block_num) {
 struct data_block load_i3block(int i3block_addr, int *block_num) {
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int i = 0;
-	while((*block_num) > POINTER_N*POINTER_N) {
-		block_num -= POINTER_N*POINTER_N;
+	while((*block_num) >= POINTER_N*POINTER_N) {
+		(*block_num) -= POINTER_N*POINTER_N;
 		i++;
 	}
 	struct data_block i3block = load_data_block(i3block_addr);
@@ -913,83 +906,82 @@ struct data_block load_i3block(int i3block_addr, int *block_num) {
 }
 
 /*write data to the block_num th block in inode specified by node_addr*/
-void write_block(int node_addr, int block_num, void * data) {
+int write_block(int node_addr, int block_num, void *data) {
 	struct inode *node = &(cur_disk->inodes[node_addr]);
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
-	int block_addr;
 	size_t file_size = node->size;
 	size_t file_block = file_size / cur_disk->sb.size;
 	if (file_size % cur_disk->sb.size != 0){
 		file_block ++;
 	}
 
-	int add_free[4] = {0, 0, 0, 0};
-	int* result = which_to_find_free(file_block, block_num + 1);
-	for (int l = 1; l < 4; l ++){
-		add_free[l] = result[l];
+	int *add_free;
+	if(file_block < block_num+1) {
+		add_free = which_to_find_free(file_block, block_num + 1);
+	} else {
+		add_free = malloc(sizeof(int) * 4);
+		bzero(add_free, sizeof(int) * 4);
 	}
-	int temp_address;
+
 	// when in direct blocks
-	if(block_num <= N_DBLOCKS) {
-		block_addr = node->dblocks[block_num];
+	if(block_num < N_DBLOCKS) {
 		if (add_free[0]){
-			temp_address = find_free_block();
-			node -> dblocks[block_num] = temp_address;
+			node->dblocks[block_num] = find_free_block();
 			write_inode(node_addr);
 		}
-		write_data_block(block_addr, data);
-		free(result);
-		return;
+		write_data_block(node->dblocks[block_num], data);
+		free(add_free);
+		return 0;
 	}
+
 	block_num -= N_DBLOCKS;
 	// when in indirect blocks
 	int i = 0;
-	while(block_num > POINTER_N && i < N_IBLOCKS) {
+	while(block_num >= POINTER_N && i < N_IBLOCKS) {
 		block_num -= POINTER_N;
 		i++;
 	}
+	
 	if(i < N_IBLOCKS) {
 		if (add_free[1]){
-			temp_address = find_free_block();
-			node->iblocks[i] = temp_address;
+			node->iblocks[i] = find_free_block();
 			write_inode(node_addr);
 		}
 		write_indirect_block(node->iblocks[i], block_num, data, add_free);
-		free(result);
-		return;
+		free(add_free);
+		return 0;
 	}
+
 	// when in i2block
 	if(block_num < POINTER_N*POINTER_N) {
 		if (add_free[2]){
-			temp_address = find_free_block();
-			node->i2block = temp_address;
+			node->i2block = find_free_block();
 			write_inode(node_addr);
 		}
 		write_i2block(node->i2block, &block_num, data, add_free);
-		free(result);
-		return;
+		free(add_free);
+		return 0;
 	}
+
 	block_num -= POINTER_N*POINTER_N;
 	// when in i3block
 	if(block_num < POINTER_N*POINTER_N*POINTER_N) {
 		if (add_free[3]){
-			temp_address = find_free_block();
-			node->i3block = temp_address;
+			node->i3block = find_free_block();
 			write_inode(node_addr);
 		}
 		write_i3block(node->i3block, &block_num, data, add_free);
-		free(result);
-		return;
+		free(add_free);
+		return 0;
 	}
-	errno = ENOENT;
-	free(result);
-	return;
+	errno = EFBIG;
+	free(add_free);
+	return -1;
 }
 
 void write_data_block(int block_addr, void * data) {
-	int BLOCK_SIZE = cur_disk->sb.size;
 	lseek(cur_disk->fd, 
-		OFFSET_START + (cur_disk->sb.data_offset + block_addr)*BLOCK_SIZE, 
+		OFFSET_START + (cur_disk->sb.data_offset + block_addr)*cur_disk->sb.size, 
 		SEEK_SET);
 	write(cur_disk->fd, data, cur_disk->sb.size);
 	return;
@@ -998,7 +990,7 @@ void write_data_block(int block_addr, void * data) {
 void write_indirect_block(int iblock_addr, int block_num, void * data, int add_free[4]) {
 	int block_addr;
 	struct data_block indirect_block = load_data_block(iblock_addr);
-	if (add_free[0]){//need to find a free block as data block
+	if (add_free[0]){ //need to find a free block as data block
 		block_addr = find_free_block();
 		((int *)indirect_block.data)[block_num] = block_addr;
 		write_data(&indirect_block);
@@ -1016,17 +1008,17 @@ void write_i2block(int i2block_addr, int *block_num, void * data, int add_free[4
 	struct data_block i2block = load_data_block(i2block_addr);
 	int iblock_addr;
 	int i = 0;
-	while((*block_num) > POINTER_N) {
-		block_num -= POINTER_N;
+	while((*block_num) >= POINTER_N) {
+		(*block_num) -= POINTER_N;
 		i++;
 	}
-	if (add_free[1]){//need to find a free block as 1st level block
+
+	if(add_free[1]) {//need to find a free block as 1st level block
 		iblock_addr = find_free_block();
 		((int *)i2block.data)[i] = iblock_addr;
 		write_data(&i2block);
-	}
-	else{
-		iblock_addr = ((int *) i2block.data)[*block_num];
+	} else{
+		iblock_addr = ((int *) i2block.data)[i];
 	}
 	free(i2block.data);
 	write_indirect_block(iblock_addr, *block_num, data, add_free);
@@ -1037,8 +1029,8 @@ void write_i3block(int i3block_addr, int *block_num, void * data, int add_free[4
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int i2block_addr;
 	int i = 0;
-	while((*block_num) > POINTER_N*POINTER_N) {
-		block_num -= POINTER_N*POINTER_N;
+	while((*block_num) >= POINTER_N*POINTER_N) {
+		(*block_num) -= POINTER_N*POINTER_N;
 		i++;
 	}
 	struct data_block i3block = load_data_block(i3block_addr);
@@ -1047,8 +1039,7 @@ void write_i3block(int i3block_addr, int *block_num, void * data, int add_free[4
 		i2block_addr = find_free_block();
 		((int *)i3block.data)[i] = i2block_addr;
 		write_data(&i3block);
-	}
-	else{
+	} else{
 		i2block_addr = ((int *) i3block.data)[i];
 	}
 	free(i3block.data);
@@ -1063,70 +1054,60 @@ for entry in the corresponding level block.
 int* which_to_find_free (size_t file_block, int block_num){
 	int POINTER_N = cur_disk->sb.size / POINTER_SIZE;
 	int *add_free= malloc(4 * sizeof(int));
-	add_free[0] = 0;
-	add_free[1] = 0;
-	add_free[2] = 0;
-	add_free[3] = 0;
+	bzero(add_free, 4 * sizeof(int));
 	/*if in direct block*/
-	if (block_num <= N_DBLOCKS ){
-		if (file_block < block_num){
-			add_free[0] = 1;
-		}
-		return add_free;
+	if (block_num <= N_DBLOCKS){
+		add_free[0] = 1;
 	}
 	/*if in indirect block*/
-	else if (block_num <= N_DBLOCKS + POINTER_N * N_IBLOCKS ){
-		int j = block_num - N_IBLOCKS;
-		int i = 1;
+	else if (block_num <= N_DBLOCKS + POINTER_N * N_IBLOCKS){
+		int j = block_num - N_DBLOCKS;
+		int i = 0;
 		while(j >= POINTER_N) {
 			j -= POINTER_N; 
 			i++;
 		}
 		//i is number of singly indirect block being fully used
 		//j is number of data_block in the not fully used block
-		if (file_block < N_DBLOCKS + i * POINTER_N + j){
-			add_free[0] = 1;
-			if (file_block < N_DBLOCKS + i * POINTER_N){
-				add_free[1] = 0;
-			}
+		add_free[0] = 1;
+		if (file_block <= N_DBLOCKS + i * POINTER_N && j == 1){
+			add_free[1] = 1;
 		}
-		return add_free;
 	}
 	/*if in doubly indirect block*/
 	else if (block_num <=  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N){
 		int j = block_num - (N_DBLOCKS + POINTER_N * N_IBLOCKS); // block number relative to the start of i2block
-		int i = 1;
+		int i = 0;
 		while(j >= POINTER_N) {
 			j-= POINTER_N;
 			i++;
 		}
+
 		//j is now number of fully used 1st level block
 		//i is number of remaining data_block
-		if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N + i * POINTER_N + j){
-			add_free[0] = 1;
-			if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N + i * POINTER_N){
-				add_free[1] = 1;
-				if (file_block <  N_DBLOCKS +  N_IBLOCKS * POINTER_N){
-					add_free[2] = 1;
-				}
+		add_free[0] = 1;
+		if (file_block <=  N_DBLOCKS +  N_IBLOCKS * POINTER_N + i * POINTER_N && j == 1){
+			add_free[1] = 1;
+			if (file_block <=  N_DBLOCKS +  N_IBLOCKS * POINTER_N && i == 0){
+				add_free[2] = 1;
 			}
 		}
-		return add_free;
 	}
 	/*if in triply indirect block*/
 	else if (block_num <=  N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N 
-		+ POINTER_N * POINTER_N *POINTER_N){
+		+ POINTER_N * POINTER_N * POINTER_N){
 		int total_until_i3 = N_DBLOCKS + POINTER_N * N_IBLOCKS + POINTER_N * POINTER_N;
 		int j = block_num - total_until_i3;
-		int i = 1;
+		int i = 0;
 		while(j >= POINTER_N * POINTER_N) {
 			j-= POINTER_N * POINTER_N;
 			i++;
 		}
+
 		//i is number of 2nd level block being fully used
 		//j is now total number of block not in those fully used 2nd level blocks
 		int k = j;
-		j = 1;
+		j = 0;
 		while (k >= POINTER_N){
 			k-= POINTER_N;
 			j++;
@@ -1134,19 +1115,16 @@ int* which_to_find_free (size_t file_block, int block_num){
 		//j is total number of 1st level block being fully used
 		//k is total number of data block in the not fully used 1st level block
 		// i: 2nd; j: 1st; k: data_block
-		if (file_block < total_until_i3 + i * POINTER_N * POINTER_N + j * POINTER_N + k){
-			add_free[0] = 1;
-			if (file_block < total_until_i3 + i * POINTER_N * POINTER_N + j * POINTER_N){
-				add_free[1] = 1;
-				if (file_block < total_until_i3 + i * POINTER_N * POINTER_N){
-					add_free[2] = 1;
-					if (file_block < total_until_i3){
-						add_free[3] = 1;
-					}
+		add_free[0] = 1;
+		if (file_block <= total_until_i3 + i * POINTER_N * POINTER_N + j * POINTER_N && k == 1){
+			add_free[1] = 1;
+			if (file_block <= total_until_i3 + i * POINTER_N * POINTER_N && j == 0){
+				add_free[2] = 1;
+				if (file_block <= total_until_i3 && i == 0){
+					add_free[3] = 1;
 				}
 			}
 		}
-		return add_free;
 	}
 	return add_free;
 }
@@ -1168,13 +1146,6 @@ void write_data(struct data_block *db) {
 		OFFSET_START + (cur_disk->sb.data_offset + db->data_addr)*cur_disk->sb.size,
 		SEEK_SET);
 	write(cur_disk->fd, db->data, cur_disk->sb.size);
-}
-
-// TODO: temporary function. should be replaced with f_write or its helpers
-void write_block_addr(int inode_addr, int block_num, int block_addr) {
-	if(block_num < N_DBLOCKS) {
-		cur_disk->inodes[inode_addr].dblocks[block_num] = block_addr;
-	}
 }
 
 /*
