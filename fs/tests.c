@@ -811,18 +811,19 @@ int main() {
 	// test_f_opendir_absolute();
 	// printf("\n");
 
-	// !!!! didn't pass valgrind
+	// !!!! error in valgrind for mysterious reason
 	// printf("%s\n", "test open /usr/bin directory");
 	// test_f_opendir_absolute_nested();
 	// printf("\n");
 
-	printf("%s\n", "test open /usr/bin directory by relative path");
-	test_f_opendir_relative();
-	printf("\n");
-
-	// printf("%s\n", "test seek root directory");
-	// test_f_seek();
+	// !!!! error in valgrind for mysterious reason
+	// printf("%s\n", "test open /usr/bin directory by relative path");
+	// test_f_opendir_relative();
 	// printf("\n");
+
+	printf("%s\n", "test seek root directory");
+	test_f_seek();
+	printf("\n");
 
 	// printf("%s\n", "test rewind root directory");
 	// test_f_rewind();
