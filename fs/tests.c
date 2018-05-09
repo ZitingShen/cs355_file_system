@@ -116,7 +116,7 @@ void test_f_open_existing() {
 
 	printf("%s\n", "Close /design.txt");
 	result = f_close(fd);
-	assert(fd == 0);
+	assert(result == 0);
 	print_fd(fd);
 
 	printf("%s\n", "Open existing /design.txt");
