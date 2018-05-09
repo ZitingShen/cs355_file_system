@@ -619,7 +619,7 @@ void test_f_readdir_crazy() {
 	int fd;
 	struct file_entry subfile;
 	char filename[12];
-	int size = 99;
+	int size = 100;
 
 	printf("%s\n", "Mount empty-disk");
 	result = f_mount("empty-disk", 0, 0, 0);
@@ -641,8 +641,6 @@ void test_f_readdir_crazy() {
 	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
-		if(subfile.node < 0)
-			printf("%d\n", i);
 		assert(subfile.node >= 0);
 	}
 
