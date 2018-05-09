@@ -864,28 +864,34 @@ int main() {
 	// test_f_read();
 	// printf("\n");
 
-	printf("%s\n", "test write an integer 4242 into /design.txt.");
-	test_f_write();
-	printf("\n");
-
-	// printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
-	// test_f_write_multiple_times();
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test write an integer 4242 into /design.txt.");
+	// test_f_write();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
+	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
+	test_f_write_multiple_times();
+	printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
 	// test_f_write_multiple_bytes();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 2000 into /design.txt.");
 	// printf("%s\n", "test of read and write on iblocks.");
 	// test_f_write_iblocks();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
 	// printf("%s\n", "test of read and write on iblocks.");
 	// test_f_write_i2block();
 	// printf("\n");
 
+	// !!!! another error in valgrind for mysterious reason
 	// printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
 	// printf("%s\n", "test of read and write on iblocks.");
 	// test_f_write_i3block();
