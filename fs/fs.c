@@ -60,8 +60,7 @@ int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
 	if (mode_binary < 0)
 		return -1;
-	char *path_copy = (char *) malloc(FILE_NAME_LENGTH+1);
-	bzero(path_copy, FILE_NAME_LENGTH+1);
+	char *path_copy = malloc(strlen(path)+1);
 	strcpy(path_copy, path);
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
@@ -79,6 +78,10 @@ int f_open(const char *path, const char *mode) {
 		subfile = find_subfile(next_fd, seg);
 		if(subfile.node < 0) {
 			if(strend(path, seg) && (mode_binary & O_CREAT)) {
+				free(path_copy);
+				path_copy = (char *) malloc(FILE_NAME_LENGTH+1);
+				bzero(path_copy, FILE_NAME_LENGTH+1);
+				strcpy(path_copy, seg);
 				subfile.node = create_file(next_fd, seg, PERMISSION_DEFAULT, TYPE_NORMAL);
 				if(subfile.node < 0) {
 					free(path_copy);
