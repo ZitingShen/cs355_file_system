@@ -1,3 +1,4 @@
+#include "format.h"
 #include "fs.h"
 #include "fs_debug.h"
 #include <stdio.h>
@@ -938,12 +939,12 @@ int main() {
 	test_f_opendir_absolute();
 	printf("\n");
 
-	!!!! error in valgrind for mysterious reason
+	// !!!! error in valgrind for mysterious reason
 	printf("%s\n", "test open /usr/bin directory");
 	test_f_opendir_absolute_nested();
 	printf("\n");
 
-	!!!! error in valgrind for mysterious reason
+	// !!!! error in valgrind for mysterious reason
 	printf("%s\n", "test open /usr/bin directory by relative path");
 	test_f_opendir_relative();
 	printf("\n");
@@ -956,32 +957,32 @@ int main() {
 	test_f_rewind();
 	printf("\n");
 
-	!!!! error in valgrind for mysterious reason
+	// !!!! error in valgrind for mysterious reason
 	printf("%s\n", "test stat root directory");
 	test_f_stat();
 	printf("\n");
 
-	!!!! error in valgrind for mysterious reason
+	// !!!! error in valgrind for mysterious reason
 	printf("%s\n", "test create and open /design.txt");
 	test_f_open();
 	printf("\n"); 
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create and open /usr/design.txt");
 	test_f_open_nested();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create and open /usr/design.txt by its relative path");
 	test_f_open_relative();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test close /design.txt after opening it");
 	test_f_close();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test open existing /design.txt after creating it");
 	test_f_open_existing();
 	printf("\n");
@@ -991,34 +992,34 @@ int main() {
 	test_f_read();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write an integer 4242 into /design.txt.");
 	test_f_write();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write integer 1000 to 1999, one at a time into /design.txt.");
 	test_f_write_multiple_times();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write an integer array of size 1000 into /design.txt.");
 	test_f_write_multiple_bytes();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write an integer array of size 2000 into /design.txt.");
 	printf("%s\n", "test of read and write on iblocks.");
 	test_f_write_iblocks();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write an integer array of size 2000000 into /design.txt.");
 	printf("%s\n", "test of read and write on iblocks.");
 	test_f_write_i2block();
 	printf("\n");
 
-	!!!! another error in valgrind for mysterious reason
+	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test write an integer array of size 3000000 into /design.txt.");
 	printf("%s\n", "test of read and write on iblocks.");
 	test_f_write_i3block();
