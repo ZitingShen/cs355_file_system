@@ -854,14 +854,16 @@ int main() {
 	// test_f_close();
 	// printf("\n");
 
-	printf("%s\n", "test open existing /design.txt after creating it");
-	test_f_open_existing();
-	printf("\n");
-
-	// printf("%s\n", "create /usr, and read an int from /.");
-	// printf("%s\n", "the int should be the inode index of /usr");
-	// test_f_read();
+	// !!!! another error in valgrind for mysterious reason
+	// printf("%s\n", "test open existing /design.txt after creating it");
+	// test_f_open_existing();
 	// printf("\n");
+
+	// !!!! another error in valgrind for mysterious reason
+	printf("%s\n", "create /usr, and read an int from /.");
+	printf("%s\n", "the int should be the inode index of /usr");
+	test_f_read();
+	printf("\n");
 
 	// printf("%s\n", "test write an integer 4242 into /design.txt.");
 	// test_f_write();
