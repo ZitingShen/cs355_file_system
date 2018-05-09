@@ -638,6 +638,41 @@ void test_f_remove_crazy() {
 	assert(result == 0);
 }
 
+void test_f_remove_large() {
+	int result;
+	int fd;
+
+	format("empty-disk", DEFAULT_DISK_SIZE*100);
+
+	printf("%s\n", "Mount empty-disk");
+	result = f_mount("empty-disk", 0, 0, 0);
+	assert(result == 0);
+
+	printf("%s\n", "Create and open /design.txt");
+	fd = f_open("/design.txt", "w");
+	assert(fd >= 0);
+
+	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
+	int size = 3000000;
+	int *arr = malloc(sizeof(int)*size);
+	for(int k = 0; k < size; k++) {
+		arr[k] = k+1000;
+	}
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
+	//print_disks();
+	print_fd(fd);
+
+	printf("%s\n", "Remove file /design.txt");
+	result = f_remove("/design.txt");
+	assert(result == 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
+}
+
 void test_f_opendir_root() {
 	int result;
 
