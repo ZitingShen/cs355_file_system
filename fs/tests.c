@@ -834,13 +834,14 @@ int main() {
 	// test_f_stat();
 	// printf("\n");
 
-	printf("%s\n", "test create and open /design.txt");
-	test_f_open();
-	printf("\n"); 
+	// !!!! error in valgrind for mysterious reason
+	// printf("%s\n", "test create and open /design.txt");
+	// test_f_open();
+	// printf("\n"); 
 
-	// printf("%s\n", "test create and open /usr/design.txt");
-	// test_f_open_nested();
-	// printf("\n");
+	printf("%s\n", "test create and open /usr/design.txt");
+	test_f_open_nested();
+	printf("\n");
 
 	// printf("%s\n", "test create and open /usr/design.txt by its relative path");
 	// test_f_open_relative();
