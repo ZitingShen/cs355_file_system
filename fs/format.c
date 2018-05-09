@@ -87,7 +87,7 @@ int format(const char *file_name, int file_size) {
 	node.permission = PERMISSION_DEFAULT;
 	node.type = 'd';
 	node.nlink = 1;
-	node.size = 0;
+	node.size = 1;
 	node.uid = 0;
 	node.gid = 0;
 	for(int i = 0; i < N_DBLOCKS; i++)
@@ -128,11 +128,22 @@ int format(const char *file_name, int file_size) {
 	}
 	free(empty_block);
 
+	void *temp_data = malloc(sb.size);
+	bzero(temp_data, sb.size);
+	(*((int *) temp_data)) = 0;
+	(*((char *) (temp_data + sizeof(int)))) = '.';
+	lseek(fd, OFFSET_START + sb.data_offset*sb.size, SEEK_SET);
+	out = write(fd, temp_data, sb.size);
+	if(out != sb.size) {
+		return -1;
+	}
+	free(temp_data);
+
 	// store free data block indices
 	int offset = OFFSET_START + sb.swap_offset*BLOCK_SIZE;
 	int counter = free_block_num-1;
 	int free_reserve_counter = FREE_RESERVE_MAX;
-	while(counter >= 0) {
+	while(counter > 0) {
 		offset -= BLOCK_SIZE;
 		lseek(fd, offset, SEEK_SET);
 		if(counter >= FREE_RESERVE_MAX-1) {

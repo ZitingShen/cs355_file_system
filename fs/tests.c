@@ -533,7 +533,7 @@ void test_f_rewind() {
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
 
-	printf("%s\n", "Seek the offset of / to 1");
+	printf("%s\n", "Rewind the offset of /");
 	f_rewind(fd);
 	print_fd(fd);
 

@@ -69,7 +69,10 @@ int f_open(const char *path, const char *mode) {
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -259,11 +262,11 @@ void f_rewind(int fd){
 	}
 	else{
 		if(open_files[fd].node == 0)
-			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+			open_files[fd].offset = DIR_INIT_OFFSET-1;
 		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_NORMAL)
 			open_files[fd].offset = 0;
 		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_DIRECTORY)
-			open_files[next_fd].offset = DIR_INIT_OFFSET;
+			open_files[fd].offset = DIR_INIT_OFFSET;
 	}
 }
 
@@ -316,7 +319,10 @@ int f_remove(const char *path) {
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -362,7 +368,10 @@ int f_opendir(const char *path) {
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -465,7 +474,10 @@ int f_mkdir(const char *path, int permission) {
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = DIR_INIT_OFFSET;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -479,40 +491,43 @@ int f_mkdir(const char *path, int permission) {
 					return -1;
 				} else {
 					free(path_copy);
-					subfile = find_subfile(next_fd, seg);
 					char file_name[FILE_NAME_LENGTH];
 					bzero(file_name, FILE_NAME_LENGTH);
 					int parent_inode = open_files[next_fd].node;
+
+					subfile = find_subfile(next_fd, seg);
 					open_files[next_fd].node = subfile.node;
 					open_files[next_fd].offset = 0;
 					open_files[next_fd].mode = O_RDONLY;
 
 					file_name[0] = '.';
-					if(f_write_helper(&(subfile.node), sizeof(int), 1, subfile.node, 
+					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						free(path_copy);
 						return -1;
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
 
 					file_name[1] = '.';
-					if(f_write_helper(&parent_inode, sizeof(int), 1, subfile.node, 
+					if(f_write_helper(&parent_inode, sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-						printf("fail 3\n");
+						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, subfile.node, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
-						printf("fail 4\n");
+						free(path_copy);
 						return -1;
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
-					write_inode(open_files[next_fd].node);
+					write_inode(subfile.node);
 
 					return 0;
 				}
@@ -587,7 +602,7 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			open_files[next_fd].node = root;
 			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 			open_files[next_fd].mode = O_RDONLY;
-			for (int i = 1; i < OPEN_FILE_MAX; i++){ //initialize the open file table
+			for (int i = next_fd+1; i != next_fd; i = (i+1)%OPEN_FILE_MAX){ //initialize the open file table
 				open_files[i].node = -1;
 				open_files[i].offset = 0;
 				open_files[i].mode = -1;
@@ -724,9 +739,10 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	}
 
 	subfile = f_readdir(dir_fd);
-
+	printf("---- %d %c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2]);
 	while(subfile.node >=0 && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
+		printf("%d %c%c%c\n", subfile.node, subfile.file_name[0], subfile.file_name[1], subfile.file_name[2]);
 	}
 	return subfile;
 }
