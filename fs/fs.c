@@ -1342,3 +1342,7 @@ void print_file_entry(struct file_entry *fe) {
 	}
 	printf("\n");
 }
+
+void refresh_open_files() {
+	next_fd = 0;
+}
