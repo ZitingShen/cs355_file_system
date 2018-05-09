@@ -33,6 +33,10 @@ void test_f_open() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_nested() {
@@ -52,6 +56,10 @@ void test_f_open_nested() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_relative() {
@@ -76,6 +84,10 @@ void test_f_open_relative() {
 	assert(fd >= 0);
 	print_disks();
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_open_existing() {
@@ -100,6 +112,10 @@ void test_f_open_existing() {
 	fd = f_open("/design.txt", "w");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_close() {
@@ -119,6 +135,10 @@ void test_f_close() {
 	result = f_close(fd);
 	assert(fd == 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_read() {
@@ -150,6 +170,10 @@ void test_f_read() {
 	printf("i should equal to the inode index in the following file entry:\n");
 	printf("i: %d\n", i);
 	print_fd(fd_usr);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_read_more() {
@@ -184,6 +208,10 @@ void test_f_write() {
 	assert(result == sizeof(int));
 	printf("%d\n", j);
 	assert(i == j);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_multiple_times() {
@@ -220,6 +248,10 @@ void test_f_write_multiple_times() {
 		assert(j == (k+size));
 	}
 	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_multiple_bytes() {
@@ -257,6 +289,10 @@ void test_f_write_multiple_bytes() {
 		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_iblocks() {
@@ -294,6 +330,10 @@ void test_f_write_iblocks() {
 		assert(arr2[k] == arr[k]);
 	}
 	printf("%s\n", "OK");
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_i2block() {
@@ -333,6 +373,10 @@ void test_f_write_i2block() {
 	printf("%s\n", "OK");
 	free(arr);
 	free(arr2);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_write_i3block() {
@@ -372,6 +416,10 @@ void test_f_write_i3block() {
 	printf("%s\n", "OK");
 	free(arr);
 	free(arr2);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_seek() {
@@ -418,6 +466,10 @@ void test_f_seek() {
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_rewind() {
@@ -463,6 +515,10 @@ void test_f_rewind() {
 	subfile = f_readdir(fd);
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_stat() {
@@ -489,6 +545,10 @@ void test_f_stat() {
 	printf("%s\n", "Stat /usr/bin");
 	result = f_stat(fd, &buf);
 	assert(result >= 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_remove() {
@@ -506,6 +566,10 @@ void test_f_opendir_root() {
 	result = f_opendir("/");
 	assert(result >= 0);
 	print_fd(result);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 
 	printf("%s\n", "Unmount empty-disk");
 	result = f_umount(0, 0);
@@ -528,6 +592,10 @@ void test_f_opendir_absolute() {
 	fd = f_opendir("/usr");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_absolute_nested() {
@@ -556,6 +624,10 @@ void test_f_opendir_absolute_nested() {
 	fd = f_opendir("/usr/bin");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_opendir_relative() {
@@ -585,6 +657,10 @@ void test_f_opendir_relative() {
 	fd = f_opendir("bin");
 	assert(fd >= 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_readdir() {
@@ -616,6 +692,10 @@ void test_f_readdir() {
 	printf("%s\n", "Should fail to read");
 	subfile = f_readdir(fd);
 	assert(subfile.node < 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_readdir_crazy() {
@@ -652,6 +732,10 @@ void test_f_readdir_crazy() {
 	printf("%s\n", "Should fail to read");
 	subfile = f_readdir(fd);
 	assert(subfile.node < 0);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_closedir() {
@@ -671,6 +755,10 @@ void test_f_closedir() {
 	result = f_closedir(fd);
 	assert(result == 0);
 	print_fd(fd);
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_mkdir() {
@@ -684,6 +772,10 @@ void test_f_mkdir() {
 	result = f_mkdir("/usr", PERMISSION_DEFAULT);
 	assert(result == 0);
 	print_disks();
+
+	printf("%s\n", "Unmount empty-disk");
+	result = f_umount(0, 0);
+	assert(result == 0);
 }
 
 void test_f_rmdir() {
