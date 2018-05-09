@@ -418,7 +418,7 @@ int f_mkdir(const char *path, int permission) {
 	}
 	char *path_copy = malloc(FILE_NAME_LENGTH);
 	bzero(path_copy, FILE_NAME_LENGTH);
-	strcpy(path_copy, path);
+	memcpy(path_copy, path, strlen(path));
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
