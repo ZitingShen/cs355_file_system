@@ -414,13 +414,11 @@ struct file_entry f_readdir(int fd) {
 	struct file_entry subfile;
 	subfile.node = -1;
 	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
-		printf("fail 1\n");
 		errno = EBADF;
 		return subfile;
 	}
 
 	if (open_files[fd].offset >= cur_disk->inodes[open_files[fd].node].size) {
-		printf("fail 2\n");
 		errno = ENOENT;
 		return subfile;
 	}
@@ -428,6 +426,7 @@ struct file_entry f_readdir(int fd) {
 	int block_num = open_files[fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
 
+	printf("%d %d\n", block_num, block_rmd);
 	struct data_block target_block = load_block(open_files[fd].node, block_num);
 	subfile.node = *((int *) (target_block.data + block_rmd*FILE_ENTRY_SIZE));
 	memcpy(subfile.file_name, target_block.data + block_rmd*FILE_ENTRY_SIZE + FILE_INDEX_LENGTH, 
