@@ -342,6 +342,7 @@ int f_remove(const char *path) {
 		if(strend(path, seg)) {
 			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 				free(path_copy);
+				printf("read %d\n", subfile.node);
 				printf("fail 2\n");
 				return -1;
 			}
@@ -581,6 +582,7 @@ int f_rmdir(const char *path) {
 	cur_disk->inodes[open_files[fd].node].type = TYPE_NORMAL;
 	cur_disk->inodes[open_files[fd].node].size *= FILE_ENTRY_SIZE;
 	write_inode(open_files[fd].node);
+	printf("write %d\n", open_files[fd].node);
 	if(f_remove(path) < 0) {
 		return -1;
 	}
