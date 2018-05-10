@@ -200,7 +200,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 
 		//change size if we are writing outside of original data block range
 		if (file_offset + write_size > cur_inode->size){
-			cur_inode -> size = file_offset + write_size;
+			cur_inode->size = file_offset + write_size;
 			printf("%d\n", open_files[fd].node);
 			write_inode(open_files[fd].node);
 		}
@@ -487,7 +487,6 @@ int f_mkdir(const char *path, int permission) {
 		subfile = find_subfile(next_fd, seg);
 		if(strend(path, seg)) {
 			if(subfile.node < 0) {
-				printf("create_file inode:%d seg:%s\n", open_files[next_fd].node, seg);
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					free(path_copy);
 					return -1;
@@ -532,7 +531,6 @@ int f_mkdir(const char *path, int permission) {
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
-					printf("write_inode inode:%d size:%d\n", subfile.node, cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
 					free(path_copy);
 					return 0;
@@ -742,12 +740,10 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	bzero(subfile.file_name, FILE_NAME_LENGTH);
 	int old_offset = open_files[dir_fd].offset;
 
-	printf("00 %s ---- %s\n", file_name, subfile.file_name);
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
 		return subfile;
 	}
 
-	printf("%s ---- %s\n", file_name, subfile.file_name);
 	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
 	if(open_files[dir_fd].offset < file_size) {
 		subfile = f_readdir(dir_fd);
@@ -793,7 +789,6 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	printf("%d %d %d\n", dir_fd, open_files[dir_fd].offset, cur_disk->inodes[open_files[dir_fd].node].size);
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, cur_disk->inodes[open_files[dir_fd].node].size*FILE_ENTRY_SIZE) != sizeof(int)) {
 		return -1;
 	}
