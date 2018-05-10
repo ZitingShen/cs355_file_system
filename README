@@ -30,6 +30,10 @@ Limitations:
 3. Valgrind reported some memory off-by-one errors when handling the filenames,
 but I checked and everything seemed to be fine. I tried to fix them, but more errors poped up, so I just gave up.
 
+4. Valgrind also reported errors when writing into uninitialized malloc'd blocks. The problem is that the blocks are already bzeroed, and it is the system call write() that writes uninitialized bytes into it. I don't think there is a good way to fix this other than significantly change the library design.
+
+5. 
+
 
 Todos:
 1. Check permission for all disk operations.

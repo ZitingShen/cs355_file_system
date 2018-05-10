@@ -212,7 +212,7 @@ bool cat(vector<string> argv){
 			f_seek(fd_out, 0, SEEK_END);
 		}
 		free(file_name_char);
-		char * cmd;
+		char *cmd;
 		while (true){
 			cmd = readline("");
 			if (cmd == NULL){
@@ -221,8 +221,10 @@ bool cat(vector<string> argv){
 			strcat(cmd, "\n");
 			if (f_write(cmd, strlen(cmd), 1, fd_out) != strlen(cmd)){
 				cerr << "error: fail to write into the file" << endl;
+				free(cmd);
 				return true;
 			}
+			free(cmd);
 		}
 		return true;
 	} else{
