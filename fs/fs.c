@@ -534,6 +534,7 @@ int f_mkdir(const char *path, int permission) {
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
+					printf("write_inode inode:%d size:%d\n", subfile.node, cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
 					free(path_copy);
 					return 0;
