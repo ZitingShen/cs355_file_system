@@ -646,14 +646,14 @@ int f_umount(const char *target, int flags) {
 
 //****************************HELPER FUNCTIONS******************
 size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int file_offset){
-	struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
+	struct inode *cur_inode = &(cur_disk->inodes[open_files[fd].node]);
 	int BLOCK_SIZE = (cur_disk->sb).size;
 	//int N_POINTER = BLOCK_SIZE / sizeof(int);
 	size_t rem_size = size * nitems; //remaining read size
 	size_t cur_out_offset = 0;
 	//if offset is ahead of size, return error
 	if (cur_inode->size < open_files[fd].offset){
-		printf("%d %d\n", cur_inode->size, open_files[fd].offset);
+		printf("%d %d\n", cur_disk->inodes[open_files[fd].node].size, open_files[fd].offset);
 		errno = EADDRNOTAVAIL;
 		return -1;
 	}
