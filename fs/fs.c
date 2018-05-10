@@ -889,8 +889,11 @@ int remove_directory(int dir_fd) {
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
 		return -1;
 	}
-	subfile = f_readdir(dir_fd);
-	while(subfile.node >=0) {
+	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
+	if(open_files[dir_fd].offset < file_size) {
+		subfile = f_readdir(dir_fd);
+	}
+	while(open_files[dir_fd].offset < file_size) {
 		if(subfile.node == open_files[dir_fd].node
 			|| subfile.node == cur_disk->inodes[open_files[dir_fd].node].parent) {
 		} else if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
