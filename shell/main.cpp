@@ -57,6 +57,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
   mount_or_not++;
+  pwd_fd = f_opendir("/");
 
   cout << "Login" << endl;
   while(login_cont) {
