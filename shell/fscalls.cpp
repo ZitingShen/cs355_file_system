@@ -157,7 +157,7 @@ bool pwd(){
 	}
 
 	char* result = get_path(pwd_fd);
-	if (!result){
+	if(!result) {
 		cerr << "error: pwd failure" << endl;
 		return true;
 	}

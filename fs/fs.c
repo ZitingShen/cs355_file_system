@@ -56,7 +56,7 @@ int find_free_block();
 int strend(const char *s, const char *t);
 
 
-char* get_dir_name(int dir_fd);
+char *get_dir_name(int dir_fd, int inode_idx);
 char* find_path(int inode_idx);
 int change_file_mode(const char *path, char* permissions);
 //***************************LIBRARY FUNCTIONS******************
@@ -1374,8 +1374,9 @@ int find_free_block(){
 	return block_num;
 }
 
-char* get_path(int dir_fd){
-	char* result = malloc(500);
+char *get_path(int dir_fd){
+	char *result = malloc(500);
+	result[0] = '/';
 	if (dir_fd > OPEN_FILE_MAX || dir_fd < 0){ //fd overflow
 		errno = EBADF;
 		return 0;
@@ -1385,71 +1386,54 @@ char* get_path(int dir_fd){
 		return 0;
 	}
 
-	char * temp_dir_name = malloc(FILE_NAME_LENGTH+1);
+	char *temp_dir_name;
 	int dir_inode_idx = open_files[dir_fd].node;
 	if(cur_disk->inodes[dir_inode_idx].type != TYPE_DIRECTORY) {
 		return 0;
 	}
 
 	while (dir_inode_idx != 0){
-		temp_dir_name = get_dir_name(dir_inode_idx);
-		if (temp_dir_name==NULL){
-			free(temp_dir_name);
+		open_files[next_fd].node = cur_disk->inodes[dir_inode_idx].parent;
+		open_files[next_fd].offset = 0;
+		open_files[next_fd].mode = O_RDONLY;
+		temp_dir_name = get_dir_name(next_fd, dir_inode_idx);
+		if (temp_dir_name == NULL){
 			return 0;
 		}
-		strcat(get_dir_name(dir_inode_idx), result);
-		strcat("/", result);
+		strcat(result, temp_dir_name);
+		strcat(result, "/");
+		free(temp_dir_name);
 		dir_inode_idx = (cur_disk->inodes)[dir_inode_idx].parent;
 	}
-	free(temp_dir_name);
 	return result;
 }
 
-char* get_dir_name(int dir_inode_idx){
-	int BLOCK_SIZE = (cur_disk->sb).size;
-	int ENTRY_NUM = BLOCK_SIZE / FILE_ENTRY_SIZE;
+char *get_dir_name(int dir_fd, int inode_idx) {
+	struct file_entry subfile;
+	subfile.node = -1;
+	bzero(subfile.file_name, FILE_NAME_LENGTH);
+	int old_offset = open_files[dir_fd].offset;
+	open_files[dir_fd].offset = 0;
 
-	if(cur_disk->inodes[dir_inode_idx].type != TYPE_DIRECTORY) {
-		return NULL;
-	}
-	
-	int par_inode_idx = ((cur_disk->inodes)[dir_inode_idx]).parent;
-	
-	struct inode par_inode = ((cur_disk->inodes)[par_inode_idx]);
+	char *result = (char *) malloc(FILE_NAME_LENGTH+1);
+	bzero(result, FILE_NAME_LENGTH+1);
 
-	int num_block = par_inode.size / BLOCK_SIZE;
-	if (par_inode.size % BLOCK_SIZE != 0) num_block ++;
+	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
+		return result;
+	}
 
-	int found = 0;
-	int * temp_inode_idx;
-	int rem_size = par_inode.size;
-	int remainder, n_entry;
-	char dir_name[FILE_NAME_LENGTH+1];
-	struct data_block temp_data_block;
-	for (int i = 0; i < num_block; i++){
-		if (found == 1) break;
-		temp_data_block = load_block(par_inode_idx, i);
-		remainder = rem_size % BLOCK_SIZE; // how many entries to read within a block
-		if (remainder == 0){
-			remainder = BLOCK_SIZE;
-		}
-		n_entry = remainder / FILE_ENTRY_SIZE;
-		for (int j = 0; j < n_entry; j++){
-			temp_inode_idx = (int*) ((char*) temp_data_block.data + j * ENTRY_NUM);
-			if(*temp_inode_idx == dir_inode_idx){
-				memcpy(dir_name, ((char*) temp_data_block.data + j * ENTRY_NUM + FILE_INDEX_LENGTH), 
-					FILE_NAME_LENGTH);
-				found = 1;
-			}
-		}
-		rem_size -= BLOCK_SIZE;
+	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
+	if(open_files[dir_fd].offset < file_size) {
+		subfile = f_readdir(dir_fd);
 	}
-	if (found == 0){
-		return NULL;
+	while(open_files[dir_fd].offset < file_size && inode_idx != subfile.node) {
+		subfile = f_readdir(dir_fd);
 	}
-	else{
-		return strcat("/", dir_name);
-	}
+	if(inode_idx != subfile.node != 0)
+		bzero(subfile.file_name, FILE_NAME_LENGTH);
+	open_files[dir_fd].offset = old_offset;
+	memcpy(result, subfile.file_name, FILE_NAME_LENGTH);
+	return result;
 }
 
 int change_file_mode(const char *path, char* permissions){
