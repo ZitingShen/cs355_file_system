@@ -57,7 +57,6 @@ int strend(const char *s, const char *t);
 
 
 char *get_dir_name(int dir_fd, int inode_idx);
-char* find_path(int inode_idx);
 int change_file_mode(const char *path, char* permissions);
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
@@ -1428,8 +1427,10 @@ char *get_path(int dir_fd){
 		if (temp_dir_name == NULL){
 			return 0;
 		}
-		strcat(result, temp_dir_name);
-		strcat(result, "/");
+		char *tmp = strdup(result);
+		strcpy(result+1, temp_dir_name);
+		strcat(result, tmp);
+		free(tmp);
 		free(temp_dir_name);
 		dir_inode_idx = (cur_disk->inodes)[dir_inode_idx].parent;
 	}
