@@ -491,6 +491,7 @@ int f_mkdir(const char *path, int permission) {
 			if(subfile.node < 0) {
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					free(path_copy);
+					printf("fail here 1\n");
 					return -1;
 				} else {
 					char file_name[FILE_NAME_LENGTH];
