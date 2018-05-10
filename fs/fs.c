@@ -1375,7 +1375,8 @@ int find_free_block(){
 }
 
 char *get_path(int dir_fd){
-	char *result = malloc(500);
+	char *result = (char *) malloc(500);
+	bzero(result, 500);
 	result[0] = '/';
 	if (dir_fd > OPEN_FILE_MAX || dir_fd < 0){ //fd overflow
 		errno = EBADF;

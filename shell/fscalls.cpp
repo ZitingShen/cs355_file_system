@@ -335,12 +335,13 @@ bool more(vector<string> argv){
 	else
 		remainder = rem_size;
 	buf = (char*) malloc(screen_size);
+	bzero(buf, screen_size);
 	if (f_read(buf, remainder, 1, fd_in) != remainder){
 		free(buf);
 		cerr << "error: fail to read file" << endl;
 		return true;
 	}
-	cout << buf << flush;
+	printf("%s\n", buf);
 	free(buf);
 	rem_size -= remainder;
 
@@ -358,12 +359,13 @@ bool more(vector<string> argv){
 			else
 				remainder = rem_size;
 			buf = (char*) malloc(screen_size);
+			bzero(buf, screen_size);
 			if (f_read(buf, remainder, 1, fd_in) != remainder){
 				free(buf);
 				cerr << "error: fail to read file" << endl;
 				return true;
 			}
-			cout << buf << flush;
+			printf("%s\n", buf);
 			free(buf);
 			rem_size -= remainder;
 		}
