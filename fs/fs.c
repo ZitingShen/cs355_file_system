@@ -569,14 +569,19 @@ int f_rmdir(const char *path) {
 	if(fd > OPEN_FILE_MAX || fd < 0) {
 		return -1;
 	}
-	if(remove_directory(fd) < 0)
+	if(remove_directory(fd) < 0) {
+		printf("fail 1\n");
 		return -1;
-	if(f_closedir(fd) < 0)
+	}
+	if(f_closedir(fd) < 0) {
 		return -1;
+	}
 	cur_disk->inodes[open_files[fd].node].type = TYPE_NORMAL;
 	cur_disk->inodes[open_files[fd].node].size *= FILE_ENTRY_SIZE;
-	if(f_remove(path) < 0)
+	if(f_remove(path) < 0) {
+		printf("fail 2\n");
 		return -1;
+	}
 	return 0;
 }
 
