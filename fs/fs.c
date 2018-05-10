@@ -496,7 +496,7 @@ int f_mkdir(const char *path, int permission) {
 					bzero(file_name, FILE_NAME_LENGTH);
 					int parent_inode = open_files[next_fd].node;
 
-					printf("parent: %d %d\n", parent_inode, open_files[next_fd].offset);
+					printf("parent: %d, offset:%d, size: %d\n", parent_inode, open_files[next_fd].offset, cur_disk->inodes[parent_inode].size);
 					subfile = find_subfile(next_fd, seg);
 					open_files[next_fd].node = subfile.node;
 					open_files[next_fd].offset = 0;
