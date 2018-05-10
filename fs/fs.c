@@ -334,20 +334,17 @@ int f_remove(const char *path) {
 	while(seg) {
 		subfile = find_subfile(next_fd, seg);
 		if(subfile.node < 0) {
-			printf("here 1\n");
 			free(path_copy);
 			errno = ENOENT;
 			return -1;
 		}
 		if(strend(path, seg)) {
 			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
-				printf("here 2\n");
 				free(path_copy);
 				return -1;
 			}
 
 			if(remove_file(next_fd, subfile.node) != 0) {
-				printf("here 3\n");
 				free(path_copy);
 				return -1;
 			}
@@ -361,7 +358,6 @@ int f_remove(const char *path) {
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
-	printf("here 4\n");
 	free(path_copy);
 	return 0;
 }
@@ -839,6 +835,7 @@ int remove_file(int dir_fd, int file_inode_idx) {
 	}
 
 	/*deal with file inode*/
+	printf("%d\n", file_inode_idx);
 	struct inode *file_inode = &(cur_disk->inodes[file_inode_idx]);
 	file_inode->nlink = 0; //change nlink to zero, assume nlink can be only 0 or 1
 	clean_all_block(file_inode); //clean all blocks
