@@ -792,7 +792,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_inode(new_inode); // write child inode back to disk
 
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-		printf("size: %d\n", cur_disk->inodes[open_files[dir_fd]].size);
+		printf("size: %d\n", cur_disk->inodes[open_files[dir_fd].node].size);
 		printf("fail --2\n");
 		return -1;
 	}
