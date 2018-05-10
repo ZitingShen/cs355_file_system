@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#include "fscalls.h"
 #include "joblist.h"
 
 using namespace std;

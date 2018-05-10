@@ -9,7 +9,7 @@ using namespace std;
 
 bool evaluate (string *command, vector<vector<string>> *parsed_segments){
 	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir"
-		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "unmount"};
+		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "umount"};
 	
 	bool cont = true;
 	int len = parsed_segments->size();
@@ -320,7 +320,7 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 	return true;
 }
 /*built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir"
-		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "unmount"};*/
+		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "umount"};*/
 bool built_in_exec(vector<string> argv) {
 	string cmd = argv.front();
 	if(cmd.compare("kill") == 0) {
@@ -336,7 +336,9 @@ bool built_in_exec(vector<string> argv) {
 	} else if(cmd.compare("exit") == 0) {
 		return false;
 	} else if(cmd.compare("ls") == 0) {
-		return ls();
+		return ls(argv);
+	} else if(cmd.compare("chmod") == 0) {
+		return ls(argv);
 	} else if(cmd.compare("mkdir") == 0) {
 		return mkdir(argv);
 	} else if(cmd.compare("rmdir") == 0) {
@@ -345,7 +347,7 @@ bool built_in_exec(vector<string> argv) {
 		return cd(argv);
 	} else if(cmd.compare("pwd") == 0) {
 		return pwd();
-	} else if(cmd.compare("cat") == 0) {
+	} else if(cmd.compare("cat") == 0) { //need to fix this
 		return cat(argv);
 	} else if(cmd.compare("more") == 0) {
 		return more(argv);
@@ -353,8 +355,9 @@ bool built_in_exec(vector<string> argv) {
 		return rm(argv);
 	} else if(cmd.compare("mount") == 0) {
 		return mount(argv);
-	} else if(cmd.compare("unmount") == 0) {
-		return unmount(argv);
+	} else if(cmd.compare("umount") == 0) {
+		return umount(argv);
+	}
 	return true;
 }
 
@@ -364,7 +367,7 @@ bool built_in_exec(vector<string> argv) {
 (3) if invalid, will still check the next jid.
 (4) -9 flag can only be at the second argument, otherwise -9 will be recognized as a job number
 */
-bool kill(vector<string> argv){
+bool kill(vector<string> argv) {
 	pid_t cur_pid;
 	int signo = SIGTERM;
 	unsigned int i = 1;

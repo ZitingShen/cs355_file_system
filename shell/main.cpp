@@ -12,6 +12,8 @@ using namespace std;
 struct joblist_t joblist;
 struct termios shell_tmodes;
 pid_t shell_pid;
+int pwd_fd;
+int uid;
 
 int main(int argc, char **argv) {
   tcgetattr (shell_terminal, &shell_tmodes);

@@ -13,9 +13,14 @@
 #include <errno.h>
 #include <cstring>
 #include <vector>
+#include <sys/ioctl.h>
+#include "readline/readline.h"
+using namespace std;
 
 //support flags -F and -l
-bool ls();
+bool ls(vector<string> argv);
+
+bool chmod(vector<string> argv);
 
 bool mkdir(vector<string> argv);
 
@@ -33,7 +38,7 @@ bool rm(vector<string> argv);
 
 bool mount(vector<string> argv);
 
-bool unmount(vector<string> argv);
+bool umount(vector<string> argv);
 
 
 

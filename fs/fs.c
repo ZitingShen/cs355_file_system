@@ -55,6 +55,10 @@ int find_free_block();
 
 int strend(const char *s, const char *t);
 
+
+char* get_dir_name(int dir_fd);
+char* find_path(int inode_idx);
+int change_file_mode(const char *path, char* permissions);
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
@@ -219,7 +223,7 @@ int f_close(int fd){
 	}
 }
 
-//success returns zero
+
 int f_seek(int fd, long offset, int whence){
 	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
@@ -1263,6 +1267,99 @@ int find_free_block(){
 	write(cur_disk->fd, (char*) temp_free_block, cur_disk->sb.size);
 	free(temp_free_block);
 	return block_num;
+}
+
+char* get_path(int dir_fd){
+	char* result = malloc(500);
+	if (dir_fd > OPEN_FILE_MAX || dir_fd < 0){ //fd overflow
+		errno = EBADF;
+		return 0;
+	}
+	if (open_files[dir_fd].node < 0){ //fd not pointing to a valid inode
+		errno = EBADF;
+		return 0;
+	}
+
+	char * temp_dir_name = malloc(FILE_NAME_LENGTH+1);
+	int dir_inode_idx = open_files[dir_fd].node;
+	if(cur_disk->inodes[dir_inode_idx].type != TYPE_DIRECTORY) {
+		return 0;
+	}
+
+	while (dir_inode_idx != 0){
+		temp_dir_name = get_dir_name(dir_inode_idx);
+		if (temp_dir_name==NULL){
+			free(temp_dir_name);
+			return 0;
+		}
+		strcat(get_dir_name(dir_inode_idx), result);
+		strcat("/", result);
+		dir_inode_idx = (cur_disk->inodes)[dir_inode_idx].parent;
+	}
+	free(temp_dir_name);
+	return result;
+}
+
+char* get_dir_name(int dir_inode_idx){
+	int BLOCK_SIZE = (cur_disk->sb).size;
+	int ENTRY_NUM = BLOCK_SIZE / FILE_ENTRY_SIZE;
+
+	if(cur_disk->inodes[dir_inode_idx].type != TYPE_DIRECTORY) {
+		return NULL;
+	}
+	
+	int par_inode_idx = ((cur_disk->inodes)[dir_inode_idx]).parent;
+	
+	struct inode par_inode = ((cur_disk->inodes)[par_inode_idx]);
+
+	int num_block = par_inode.size / BLOCK_SIZE;
+	if (par_inode.size % BLOCK_SIZE != 0) num_block ++;
+
+	int found = 0;
+	int * temp_inode_idx;
+	int rem_size = par_inode.size;
+	int remainder, n_entry;
+	char dir_name[FILE_NAME_LENGTH+1];
+	struct data_block temp_data_block;
+	for (int i = 0; i < num_block; i++){
+		if (found == 1) break;
+		temp_data_block = load_block(par_inode_idx, i);
+		remainder = rem_size % BLOCK_SIZE; // how many entries to read within a block
+		if (remainder == 0){
+			remainder = BLOCK_SIZE;
+		}
+		n_entry = remainder / FILE_ENTRY_SIZE;
+		for (int j = 0; j < n_entry; j++){
+			temp_inode_idx = (int*) ((char*) temp_data_block.data + j * ENTRY_NUM);
+			if(*temp_inode_idx == dir_inode_idx){
+				memcpy(dir_name, ((char*) temp_data_block.data + j * ENTRY_NUM + FILE_INDEX_LENGTH), 
+					FILE_NAME_LENGTH);
+				found = 1;
+			}
+		}
+		rem_size -= BLOCK_SIZE;
+	}
+	if (found == 0){
+		return NULL;
+	}
+	else{
+		return strcat("/", dir_name);
+	}
+}
+
+int change_file_mode(const char *path, char* permissions){
+
+	int file_fd = f_open(strdup(path), permissions);
+	if (file_fd < 0){
+		return -1;
+	}
+	int file_inode_idx = open_files[file_fd].node;
+	struct inode * file_inode = &((cur_disk->inodes)[file_inode_idx]);
+	file_inode->permission = convert_mode(permissions);
+	if (f_close(file_fd)!=0){
+		return -1;
+	}
+	return 0;
 }
 
 //****************************UTILITY FUNCTIONS*****************
