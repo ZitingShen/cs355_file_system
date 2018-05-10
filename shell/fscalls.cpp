@@ -181,8 +181,10 @@ bool cat(vector<string> argv){
 		char* out_name_char = strdup(out_name.c_str());
 		if ((fd_out = f_open(out_name_char, "w")) < 0) {
 			cerr << "fail to open the file" << endl;
+			free(out_name_char);
 			return true;
 		}
+		free(out_name_char);
 	} else if (argv.size() == 1){
 		to_std_out = true;
 	} else{
