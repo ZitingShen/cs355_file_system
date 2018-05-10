@@ -8,7 +8,7 @@ extern pid_t shell_pid;
 using namespace std;
 
 bool evaluate (string *command, vector<vector<string>> *parsed_segments){
-	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir"
+	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir",
 		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "umount"};
 	
 	bool cont = true;
