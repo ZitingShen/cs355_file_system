@@ -258,8 +258,10 @@ bool cat(vector<string> argv){
 
 	int remainder;
 	while(rem_size > 0){
-		remainder = rem_size % BLOCK_SIZE;
-		if (remainder == 0) remainder = BLOCK_SIZE;
+		if (rem_size > BLOCK_SIZE)
+			remainder = BLOCK_SIZE;
+		else
+			remainder = rem_size;
 		if (f_read(buf, remainder, 1, fd_in) != remainder) {
 			cerr << "error: fail to read in the file" << endl;
 			return true;
