@@ -571,7 +571,12 @@ int f_rmdir(const char *path) {
 	}
 	if(remove_directory(fd) < 0)
 		return -1;
-	f_closedir(fd);
+	if(f_closedir(fd) < 0)
+		return -1;
+	cur_disk->inodes[open_files[fd].node].type = TYPE_NORMAL;
+	cur_disk->inodes[open_files[fd].node].size *= FILE_ENTRY_SIZE;
+	if(f_remove(path) < 0)
+		return -1;
 	return 0;
 }
 

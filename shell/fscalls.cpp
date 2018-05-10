@@ -109,10 +109,13 @@ bool rmdir(vector<string> argv){
 
 	string dir_name = argv[1];
 
-	if (f_rmdir(strdup(dir_name.c_str())) != 0) {
+	char *dir_name_copy = strdup(dir_name.c_str());
+	if (f_rmdir(dir_name_copy) != 0) {
 		cerr << "error: fail to remove the directory" << endl;
+		free(dir_name_copy);
 		return true;
 	}
+	free(dir_name_copy);
 	return true;
 }
 
@@ -131,11 +134,14 @@ bool cd(vector<string> argv){
 		cerr << "fail to close the directory" << endl;
 		return true;
 	}
-	int nex_dir = f_opendir(strdup(path.c_str()));
+	char *path_copy = strdup(path.c_str());
+	int nex_dir = f_opendir(path_copy);
 	if (nex_dir < 0){
 		cerr << "fail to open the directory" << endl;
+		free(path_copy);
 		return true;
 	}
+	free(path_copy);
 	pwd_fd = nex_dir;
 	return true;
 }
