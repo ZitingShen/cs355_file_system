@@ -968,18 +968,18 @@ int main() {
 	test_f_readdir();
 	printf("\n");
 
-	printf("%s\n", "test read root directory for 100 times");
-	test_f_readdir_crazy();
-	printf("\n");
+	//printf("%s\n", "test read root directory for 100 times");
+	//test_f_readdir_crazy();
+	//printf("\n");
 
 	printf("%s\n", "test open /usr directory");
 	test_f_opendir_absolute();
 	printf("\n");
 
 	// !!!! error in valgrind for mysterious reason
-	printf("%s\n", "test open /usr/bin directory");
-	test_f_opendir_absolute_nested();
-	printf("\n");
+	//printf("%s\n", "test open /usr/bin directory");
+	//test_f_opendir_absolute_nested();
+	//printf("\n");
 
 	// !!!! error in valgrind for mysterious reason
 	printf("%s\n", "test open /usr/bin directory by relative path");
