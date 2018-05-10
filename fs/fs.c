@@ -653,7 +653,6 @@ size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int f
 	size_t cur_out_offset = 0;
 	//if offset is ahead of size, return error
 	if (cur_inode->size < open_files[fd].offset){
-		printf("%d %d\n", cur_disk->inodes[open_files[fd].node].size, open_files[fd].offset);
 		errno = EADDRNOTAVAIL;
 		return -1;
 	}
@@ -793,6 +792,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_inode(new_inode); // write child inode back to disk
 
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+		printf("size: %d\n", cur_disk->inodes[open_files[dir_fd]].size);
 		printf("fail --2\n");
 		return -1;
 	}
