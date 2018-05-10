@@ -67,10 +67,10 @@ int main(int argc, char **argv) {
       cout << "If you want to quit, type 'quit'." << endl;
     } else if(strcmp(username, QUIT) == 0 || strcmp(password, QUIT) == 0) {
       exit(EXIT_FAILURE);
-    } else if(strcmp(username, ROOT_USERNAME) == 0 && strcmp(password, ROOT_PASSWORD)) {
+    } else if(strcmp(username, ROOT_USERNAME) == 0 && strcmp(password, ROOT_PASSWORD) == 0) {
       uid = 0;
       login_cont = false;
-    } else if(strcmp(username, DEFAULT_USERNAME) == 0 && strcmp(password, DEFAULT_PASSWORD)) {
+    } else if(strcmp(username, DEFAULT_USERNAME) == 0 && strcmp(password, DEFAULT_PASSWORD) == 0) {
       uid = 1;
       login_cont = false;
     } else {
