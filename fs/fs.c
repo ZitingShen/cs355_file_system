@@ -1457,7 +1457,7 @@ char *get_dir_name(int dir_fd, int inode_idx) {
 	while(open_files[dir_fd].offset < file_size && inode_idx != subfile.node) {
 		subfile = f_readdir(dir_fd);
 	}
-	if(inode_idx != subfile.node != 0)
+	if(inode_idx != subfile.node)
 		bzero(subfile.file_name, FILE_NAME_LENGTH);
 	open_files[dir_fd].offset = old_offset;
 	memcpy(result, subfile.file_name, FILE_NAME_LENGTH);
