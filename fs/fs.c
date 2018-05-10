@@ -195,6 +195,9 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		errno = EBADF;
 		return -1;
 	} else{
+		if(open_files[fd].mode & O_TRUNC) {
+			f_rewind(fd);
+		}
 		struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
 		int file_offset = open_files[fd].offset; 
 
@@ -1375,8 +1378,7 @@ int find_free_block(){
 }
 
 char *get_path(int dir_fd){
-	char *result = (char *) malloc(500);
-	bzero(result, 500);
+	char *result = malloc(500);
 	result[0] = '/';
 	if (dir_fd > OPEN_FILE_MAX || dir_fd < 0){ //fd overflow
 		errno = EBADF;
@@ -1430,7 +1432,7 @@ char *get_dir_name(int dir_fd, int inode_idx) {
 	while(open_files[dir_fd].offset < file_size && inode_idx != subfile.node) {
 		subfile = f_readdir(dir_fd);
 	}
-	if(inode_idx != subfile.node)
+	if(inode_idx != subfile.node != 0)
 		bzero(subfile.file_name, FILE_NAME_LENGTH);
 	open_files[dir_fd].offset = old_offset;
 	memcpy(result, subfile.file_name, FILE_NAME_LENGTH);

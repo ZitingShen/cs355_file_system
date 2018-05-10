@@ -17,6 +17,7 @@
 
 #include "fscalls.h"
 #include "joblist.h"
+#include "fs.h"
 
 using namespace std;
 

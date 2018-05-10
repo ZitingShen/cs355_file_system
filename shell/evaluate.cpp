@@ -27,7 +27,7 @@ bool evaluate (string *command, vector<vector<string>> *parsed_segments){
 				bg_fg = BG;
 				first_seg.pop_back();
 			}
-			cont = no_pipe_exec(command, first_seg, bg_fg);
+			cont = pipe_exec(command, parsed_segments, bg_fg);
 		}
 	}
 	/* Pipe exists!!*/
@@ -151,6 +151,25 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 	unsigned int num_pipes = parsed_segments->size() - 1;
 	pid_t pid;
 	int pipes[2*num_pipes];
+	int out_pipe = open("temp", O_RDWR | O_CREAT | O_TRUNC, 0644);
+	int out_real = -1;
+	int segment_size = (*parsed_segments)[parsed_segments->size()-1].size();
+	if(segment_size > 1) {
+		if((*parsed_segments)[parsed_segments->size()-1][segment_size-2] == ">") {
+			out_real = f_open((*parsed_segments)[parsed_segments->size()-1][segment_size-1].c_str(), "w");
+			if(out_real < 0) {
+				cerr << "fail to redirect out" << endl;
+				return true;
+			}
+		}
+		if((*parsed_segments)[parsed_segments->size()-1][segment_size-2] == ">>") {
+			out_real = f_open((*parsed_segments)[parsed_segments->size()-1][segment_size-1].c_str(), "a");
+			if(out_real < 0) {
+				cerr << "fail to redirect out" << endl;
+				return true;
+			}
+		}
+	}
 	vector<string> cur_seg;
 	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit"};
 
@@ -218,7 +237,15 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 				if (dup2(pipes[i * 2 + 1], STDOUT_FILENO) < 0) {
 	  				cerr << "Command :" << cmd << ". Right pipe initialization error" << endl;
 	  				return false;
-				}	
+				}
+      		} else {
+      			if (out_real >= 0) {
+      				if (dup2(out_pipe, STDOUT_FILENO) < 0) {
+      					printf("out_pipe %d\n", out_pipe);
+		  				cerr << "Command :" << cmd << ". Right pipe initialization error" << endl;
+		  				return false;
+					}
+      			}
       		}
 
       		/*close pipes*/
@@ -308,7 +335,28 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 					joblist.remove_pid(pid);
 					if(i != 0) close(pipes[2*(i-1)]);
 					close(pipes[2*i+1]);
-					if(i == parsed_segments->size()-1) close(pipes[2*i]);
+					return true;
+				} else if (i == parsed_segments->size()-1 && WIFEXITED(status)) {
+					char *buffer = 0;
+					long length = 0;
+					close(pipes[2*i]);
+					close(out_pipe);
+					FILE *f = fopen("temp", "r");
+					if(f) {
+						fseek(f, 0, SEEK_END);
+						length = ftell(f);
+						rewind(f);
+						buffer = (char *) malloc(length);
+						if(buffer) {
+							fread(buffer, 1, length, f);
+						}
+						fclose(f);
+						if(f_write(buffer, 1, length, out_real) != length) {
+							cerr << "fail to redirect out" << endl;
+						}
+						f_close(out_real);
+						free(buffer);
+					}
 				}
 			} else {
 				close(pipes[2*(i-1)]);
