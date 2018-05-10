@@ -533,6 +533,7 @@ int f_mkdir(const char *path, int permission) {
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
+					printf("%d\n", cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
 
 					return 0;
@@ -792,7 +793,6 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_inode(new_inode); // write child inode back to disk
 
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-		printf("size: %d\n", cur_disk->inodes[open_files[dir_fd].node].size);
 		printf("fail --2\n");
 		return -1;
 	}
