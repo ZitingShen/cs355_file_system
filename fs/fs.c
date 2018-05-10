@@ -491,7 +491,6 @@ int f_mkdir(const char *path, int permission) {
 					free(path_copy);
 					return -1;
 				} else {
-					free(path_copy);
 					char file_name[FILE_NAME_LENGTH];
 					bzero(file_name, FILE_NAME_LENGTH);
 					int parent_inode = open_files[next_fd].node;
@@ -535,7 +534,7 @@ int f_mkdir(const char *path, int permission) {
 					cur_disk->inodes[subfile.node].size++;
 					printf("node: %d size: %d\n", subfile.node, cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
-
+					free(path_copy);
 					return 0;
 				}
 			} else {
