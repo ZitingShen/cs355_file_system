@@ -336,16 +336,19 @@ int f_remove(const char *path) {
 		if(subfile.node < 0) {
 			free(path_copy);
 			errno = ENOENT;
+			printf("fail 1\n");
 			return -1;
 		}
 		if(strend(path, seg)) {
 			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 				free(path_copy);
+				printf("fail 2\n");
 				return -1;
 			}
 
 			if(remove_file(next_fd, subfile.node) != 0) {
 				free(path_copy);
+				printf("fail 3\n");
 				return -1;
 			}
 		}
@@ -835,7 +838,6 @@ int remove_file(int dir_fd, int file_inode_idx) {
 	}
 
 	/*deal with file inode*/
-	printf("%d\n", file_inode_idx);
 	struct inode *file_inode = &(cur_disk->inodes[file_inode_idx]);
 	file_inode->nlink = 0; //change nlink to zero, assume nlink can be only 0 or 1
 	clean_all_block(file_inode); //clean all blocks
@@ -1266,18 +1268,15 @@ void clean_all_block(struct inode *file_inode){
 		if (rem_size <= 0) break;
 		clean_dblock((file_inode->dblocks)[i], &rem_size);
 	}
-	printf("%d\n", rem_size);
 	/*clean indirect blocks*/
 	for (int i = 0; i < N_IBLOCKS; i++){
 		if (rem_size <= 0) break;
 		clean_iblock((file_inode->iblocks)[i], &rem_size);
 	}
-	printf("%d\n", rem_size);
 	/*clean i2block*/
 	if (rem_size > 0){
 		clean_i2block(file_inode->i2block, &rem_size);
 	}
-	printf("%d\n", rem_size);
 	/*clean i3block*/
 	if (rem_size > 0){
 		clean_i3block(file_inode->i3block, &rem_size);
