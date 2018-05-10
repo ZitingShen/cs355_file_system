@@ -201,6 +201,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		//change size if we are writing outside of original data block range
 		if (file_offset + write_size > cur_inode->size){
 			cur_inode -> size = file_offset + write_size;
+			printf("%d\n", open_files[fd].node);
 			write_inode(open_files[fd].node);
 		}
 		
