@@ -1,6 +1,10 @@
 #ifndef __FS_H__
 #define __FS_H__
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 #include "util.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -104,4 +108,9 @@ char* get_path(int inode_idx);
 int change_file_mode(const char *path, char* permissions);
 
 int convert_mode(const char* mode);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

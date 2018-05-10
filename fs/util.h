@@ -1,6 +1,10 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 #define	POINTER_SIZE		sizeof(int)
 
 #define OFFSET_BOOT			0
@@ -65,5 +69,9 @@ struct inode {
 	int i2block; /* pointer to doubly indirect block */
 	int i3block; /* pointer to triply indirect block */
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
