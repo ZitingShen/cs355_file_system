@@ -176,19 +176,58 @@ bool cat(vector<string> argv){
 
 	bool to_std_out = false;
 	int fd_out = -1;
-	if (argv.size() == 3 && argv[1] == ">"){
-		string out_name = argv[2];
+	if (argv.size() == 4 && (argv[2] == ">" || argv[2] == ">>")){
+		string out_name = argv[3];
 		char* out_name_char = strdup(out_name.c_str());
 		if ((fd_out = f_open(out_name_char, "w")) < 0) {
 			cerr << "fail to open the file" << endl;
 			free(out_name_char);
 			return true;
 		}
+		if (argv[1] == ">"){
+			f_rewind(fd_out);
+		}
+		else{
+			f_seek(fd_out, 0, SEEK_END);
+		}
 		free(out_name_char);
-	} else if (argv.size() == 1){
+	} else if (argv.size() == 2){ 
 		to_std_out = true;
+	} else if (argv.size() == 3 && (argv[1] == ">" || argv[1] == ">>")) {//redirect from cmdline
+		string file_name = argv[2];
+		char *file_name_char = strdup(file_name.c_str());
+		int fd_out;
+		if ((fd_out = f_open(file_name_char, "w")) < 0){
+			cerr << "error: fail to open the file" << endl;
+			free(file_name_char);
+			return true;
+		}
+		if (argv[1] == ">"){
+			f_rewind(fd_out);
+		}
+		else{
+			f_seek(fd_out, 0, SEEK_END);
+		}
+		free(file_name_char);
+		char * cmd;
+		while (true){
+			cmd = readline("");
+			if (cmd == NULL){
+				break;
+			}
+			strcat(cmd, "\n");
+			if (f_write(cmd, strlen(cmd), 1, fd_out)< 0){
+				cerr << "error: fail to write into the file" << endl;
+				return true;
+			}
+		}
+		return true;
 	} else{
 		cerr << "usage: cat <input file> > <output file>" << endl;
+		for (unsigned int j = 0; j < argv.size(); j ++){
+			cout << argv[j] << endl;
+		}
+		cout << "current number of arguments: "<<argv.size() <<endl;
 		return true;
 	}
 
@@ -215,7 +254,7 @@ bool cat(vector<string> argv){
 	while(rem_size > 0){
 		remainder = rem_size % BLOCK_SIZE;
 		if (remainder == 0) remainder = BLOCK_SIZE;
-		if (f_read(buf, remainder, 1, fd_in)!=0) {
+		if (f_read(buf, remainder, 1, fd_in) < 0) {
 			cerr << "error: fail to read in the file" << endl;
 			return true;
 		}
@@ -223,7 +262,7 @@ bool cat(vector<string> argv){
 			printf("%s\n", buf);
 		}
 		else{
-			if (f_write(buf, remainder, 1, fd_out)!=0){
+			if (f_write(buf, remainder, 1, fd_out) < 0){
 				free(buf);
 				cerr << "error: fail to write into the file" << endl;
 				return true;
@@ -275,27 +314,33 @@ bool more(vector<string> argv){
    		return true;
    	}
 
+   	f_rewind(fd_in);
 	size_t rem_size = f_seek(fd_in, 0, SEEK_END);
 
 	int remainder;
 	char* buf = (char*) malloc(size.ws_row+1);
-
+	cout << size.ws_row << "is row size"<< endl;
+	cout << size.ws_col << "is row size"<< endl;
+	cout << rem_size << "is rem_size"<< endl;
 	for (int i = 0; i < size.ws_col; i++){
 		if (rem_size <= 0) break;
 		remainder = rem_size % size.ws_row;
-		if (remainder == 0) remainder = size.ws_row;
-		if (f_read(buf, remainder, 1, fd_in)!=0){
+		cout << remainder << "is remainder"<< endl;
+		if (remainder == 0) remainder = size.ws_row - 1;
+		if (f_read(buf, remainder, 1, fd_in) < 0){
 			free(buf);
+			cerr << "error: fail to read file" << endl;
 			return true;
 		}
-		printf("%s\n", buf);
+		cout<< buf <<endl;
+		//printf("%s\n", buf);
 		rem_size -= remainder;
 	}
 
 	/*for continuous use*/
 	bool cont = true;
 	while (cont){
-		char* cmd = readline(":");
+		char* cmd = readline("");
 		if (strcmp(cmd, "q") == 0){
 			break;
 		}
@@ -303,8 +348,9 @@ bool more(vector<string> argv){
 			if (rem_size <= 0) continue;
 			remainder = rem_size % size.ws_row;
 			if (remainder == 0) remainder = size.ws_row;
-			if (f_read(buf, remainder, 1, fd_in)!=0){
+			if (f_read(buf, remainder, 1, fd_in)< 0){
 				free(buf);
+				cerr << "error: fail to read file" << endl;
 				return true;
 			}
 			printf("%s\n", buf);

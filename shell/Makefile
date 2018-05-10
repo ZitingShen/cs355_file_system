@@ -4,8 +4,11 @@ CFLAGS2=-g -Wall
 
 all: main
 
-main: main.cpp parse.o handle_signal.o evaluate.o joblist.o format.o fs.o fscalls.o
-	$(CC) $(CFLAGS) -lreadline -o main main.cpp parse.o handle_signal.o evaluate.o joblist.o fs.o format.o fscalls.o
+main: main.o parse.o handle_signal.o evaluate.o joblist.o format.o fs.o fscalls.o
+	$(CC) $(CFLAGS) -lreadline -o main main.o parse.o handle_signal.o evaluate.o joblist.o fs.o format.o fscalls.o
+
+main.o: main.cpp
+	$(CC) $(CFLAGS) -c main.cpp
 
 parse.o: parse.cpp
 	$(CC) $(CFLAGS) -c parse.cpp
