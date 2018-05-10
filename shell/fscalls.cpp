@@ -371,19 +371,23 @@ bool umount(vector<string> argv){
 		return true;
 	} 
 
-	if (argv.size() < 2){
-		cerr << "usage: umount <target path>" << endl;
-		return true;
-	}
-
-	string target = argv[1];
-
-	if (f_umount(target.c_str(), 0) != 0){
-		//unmount failed
-		cerr << "error: umount failure" << endl;
-		return true;
+	if(argv.size() == 2) {
+		string target = argv[1];
+		if (f_umount(target.c_str(), 0) != 0){
+			//unmount failed
+			cerr << "error: umount failure" << endl;
+			return true;
+		} else {
+			mount_or_not--;
+		}
 	} else {
-		mount_or_not--;
+		if (f_umount(0, 0) != 0){
+			//unmount failed
+			cerr << "error: umount failure" << endl;
+			return true;
+		} else {
+			mount_or_not--;
+		}
 	}
 	return true;
 }
