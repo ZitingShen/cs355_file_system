@@ -486,7 +486,7 @@ int f_mkdir(const char *path, int permission) {
 		subfile = find_subfile(next_fd, seg);
 		if(strend(path, seg)) {
 			if(subfile.node < 0) {
-				printf("offset: %d\n", open_files[next_fd].offset);
+				printf("size: %d\n", cur_disk->inodes[open_files[next_fd].node].size);
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					printf("fail 0\n");
 					free(path_copy);
@@ -533,7 +533,6 @@ int f_mkdir(const char *path, int permission) {
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
-					printf("%d\n", cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
 
 					return 0;
