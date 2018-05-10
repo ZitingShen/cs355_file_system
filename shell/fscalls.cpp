@@ -316,16 +316,13 @@ bool more(vector<string> argv){
 
    	f_rewind(fd_in);
 	size_t rem_size = f_seek(fd_in, 0, SEEK_END);
+	f_rewind(fd_in);
 
 	int remainder;
 	char* buf = (char*) malloc(size.ws_row+1);
-	cout << size.ws_row << "is row size"<< endl;
-	cout << size.ws_col << "is row size"<< endl;
-	cout << rem_size << "is rem_size"<< endl;
 	for (int i = 0; i < size.ws_col; i++){
 		if (rem_size <= 0) break;
 		remainder = rem_size % size.ws_row;
-		cout << remainder << "is remainder"<< endl;
 		if (remainder == 0) remainder = size.ws_row - 1;
 		if (f_read(buf, remainder, 1, fd_in) < 0){
 			free(buf);
