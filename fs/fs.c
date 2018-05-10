@@ -896,7 +896,6 @@ int remove_directory(int dir_fd) {
 	struct file_entry subfile;
 	subfile.node = 0;
 
-	printf("node ----- %d\n", open_files[dir_fd].node);
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
 		return -1;
 	}
@@ -928,6 +927,7 @@ int remove_directory(int dir_fd) {
 		}
 		subfile = f_readdir(dir_fd);
 	}
+	printf("node ----- %d\n", open_files[dir_fd].node);
 	return 0;
 }
 
