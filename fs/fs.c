@@ -766,6 +766,7 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	// check if more inode could be added
 	int INODE_MAX = (cur_disk->sb.data_offset - cur_disk->sb.inode_offset)*cur_disk->sb.size/sizeof(struct inode);
 	if(cur_disk->inodes[new_inode].next_inode >= INODE_MAX) {
+		printf("fail --1\n");
 		errno = ENOSPC;
 		return -1;
 	}
@@ -791,9 +792,11 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_inode(new_inode); // write child inode back to disk
 
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+		printf("fail --2\n");
 		return -1;
 	}
 	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+		printf("fail --3\n");
 		return -1;
 	}
 
