@@ -249,6 +249,7 @@ bool cat(vector<string> argv){
 	size_t rem_size = f_seek(fd_in, 0, SEEK_END);
 	f_rewind(fd_in);
 	char* buf = (char*) malloc(BLOCK_SIZE+1);
+	bzero(buf, BLOCK_SIZE+1);
 
 	if (!buf){
 		cerr << "error: fail to malloc" << endl;
