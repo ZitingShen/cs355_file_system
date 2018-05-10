@@ -157,6 +157,8 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 	if(segment_size > 1) {
 		if((*parsed_segments)[parsed_segments->size()-1][segment_size-2] == ">") {
 			out_real = f_open((*parsed_segments)[parsed_segments->size()-1][segment_size-1].c_str(), "w");
+			(*parsed_segments)[parsed_segments->size()-1].erase((*parsed_segments)[parsed_segments->size()-1].end()-2, 
+				(*parsed_segments)[parsed_segments->size()-1].end());
 			if(out_real < 0) {
 				cerr << "fail to redirect out" << endl;
 				return true;
@@ -164,6 +166,8 @@ bool pipe_exec(string *command, vector<vector<string>> *parsed_segments, job_sta
 		}
 		if((*parsed_segments)[parsed_segments->size()-1][segment_size-2] == ">>") {
 			out_real = f_open((*parsed_segments)[parsed_segments->size()-1][segment_size-1].c_str(), "a");
+			(*parsed_segments)[parsed_segments->size()-1].erase((*parsed_segments)[parsed_segments->size()-1].end()-2, 
+				(*parsed_segments)[parsed_segments->size()-1].end());
 			if(out_real < 0) {
 				cerr << "fail to redirect out" << endl;
 				return true;
