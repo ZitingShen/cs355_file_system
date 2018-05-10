@@ -576,14 +576,13 @@ int f_rmdir(const char *path) {
 	if(remove_directory(fd) < 0) {
 		return -1;
 	}
-	if(f_closedir(fd) < 0) {
-		return -1;
-	}
 	cur_disk->inodes[open_files[fd].node].type = TYPE_NORMAL;
 	cur_disk->inodes[open_files[fd].node].size *= FILE_ENTRY_SIZE;
 	write_inode(open_files[fd].node);
-	printf("write %d\n", open_files[fd].node);
 	if(f_remove(path) < 0) {
+		return -1;
+	}
+	if(f_closedir(fd) < 0) {
 		return -1;
 	}
 	return 0;
@@ -927,7 +926,6 @@ int remove_directory(int dir_fd) {
 		}
 		subfile = f_readdir(dir_fd);
 	}
-	printf("node ----- %d\n", open_files[dir_fd].node);
 	return 0;
 }
 
