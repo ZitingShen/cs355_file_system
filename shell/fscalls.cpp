@@ -1,7 +1,7 @@
 #include "fscalls.h"
 
 extern int pwd_fd;
-int mount_or_not = 0;
+extern int mount_or_not;
 extern int uid;
 
 #define BLOCK_SIZE 512
@@ -63,6 +63,12 @@ bool chmod(vector<string> argv){
 		cerr << "usage: chmod <file path> <permission>" << endl;
 		return true;
 	}
+
+	if(uid != 0) {
+		cout << "error: permission denid. only root user can change file permission" << endl;
+		return true;
+	}
+
 	string file_name = argv[1];
 	string permission = argv[2];
 

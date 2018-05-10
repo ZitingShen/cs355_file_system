@@ -4,8 +4,15 @@
 #include "handle_signal.h"
 #include "joblist.h"
 #include "parse.h"
+#include "fs.h"
+
 #define shell_terminal STDIN_FILENO
 
+#define ROOT_USERNAME     "root"
+#define ROOT_PASSWORD     "rootpwd"
+#define DEFAULT_USERNAME  "default"
+#define DEFAULT_PASSWORD  "defaultpwd"
+#define QUIT              "quit"
 
 using namespace std;
 
@@ -14,11 +21,13 @@ struct termios shell_tmodes;
 pid_t shell_pid;
 int pwd_fd;
 int uid;
+int mount_or_not;
 
 int main(int argc, char **argv) {
   tcgetattr (shell_terminal, &shell_tmodes);
   shell_pid = getpid();
   char *cmdline;
+  bool login_cont = true;
   bool cont = true;
 
   // register signal handler for SIGCHLD sigaction
@@ -43,6 +52,35 @@ int main(int argc, char **argv) {
 
   using_history();
 
+  if(f_mount("DISK", 0, 0, 0) < 0) {
+    cerr << "Failed to mount the disk" << endl;
+    exit(EXIT_FAILURE);
+  }
+  mount_or_not++;
+
+  cout << "Login" << endl;
+  while(login_cont) {
+    char *username = readline("username: ");
+    char *password = readline("password: ");
+    if(username == NULL || password == NULL ) {
+      cout << "Failed to login. Try again." << endl;
+      cout << "If you want to quit, type 'quit'." << endl;
+    } else if(strcmp(username, QUIT) == 0 || strcmp(password, QUIT)) {
+      exit(EXIT_FAILURE);
+    } else if(strcmp(username, ROOT_USERNAME) == 0 && strcmp(password, ROOT_PASSWORD)) {
+      uid = 0;
+      login_cont = false;
+    } else if(strcmp(username, DEFAULT_USERNAME) == 0 && strcmp(password, DEFAULT_PASSWORD)) {
+      uid = 1;
+      login_cont = false;
+    } else {
+      cout << "Failed to login. Try again." << endl;
+      cout << "If you want to quit, type 'quit'." << endl;
+    }
+    free(username);
+    free(password);
+  }
+  
   while(cont) {
     joblist.remove_terminated_jobs();
     
@@ -94,5 +132,7 @@ int main(int argc, char **argv) {
         }
       }
     }
+
+    free(cmdline);
   }
 }
