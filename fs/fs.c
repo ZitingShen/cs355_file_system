@@ -652,7 +652,8 @@ size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int f
 	size_t rem_size = size * nitems; //remaining read size
 	size_t cur_out_offset = 0;
 	//if offset is ahead of size, return error
-	if (cur_inode -> size < open_files[fd].offset){
+	if (cur_inode->size < open_files[fd].offset){
+		printf("fail **1\n");
 		errno = EADDRNOTAVAIL;
 		return -1;
 	}
