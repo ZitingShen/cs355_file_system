@@ -327,10 +327,13 @@ bool rm(vector<string> argv){
 		return true;
 	}
 	string path = argv[1];
-	if (f_remove(path.c_str()) != 0){
+	char *path_copy = strdup(path.c_str());
+	if (f_remove(path_copy) != 0){
 		cerr << "error: remove failure" << endl;
+		free(path_copy);
 		return true;
 	}
+	free(path_copy);
 	return true;
 }
 
