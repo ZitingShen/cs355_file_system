@@ -1306,6 +1306,7 @@ void clean_i3block(int i3block_addr, size_t *rem_size){
 void add_free_block(int block_num){
 	int new_head = cur_disk->sb.free_block_head;
 	int *temp_free_block = (int *) malloc((cur_disk->sb).size);
+	bzero(temp_free_block, (cur_disk->sb).size);
  	/*read the free block*/
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,
