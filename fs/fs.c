@@ -503,11 +503,13 @@ int f_mkdir(const char *path, int permission) {
 					file_name[0] = '.';
 					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						printf("fail 1\n");
 						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						printf("fail 2\n");
 						free(path_copy);
 						return -1;
 					}
@@ -517,11 +519,13 @@ int f_mkdir(const char *path, int permission) {
 					file_name[1] = '.';
 					if(f_write_helper(&parent_inode, sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						printf("fail 3\n");
 						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						printf("fail 4\n");
 						free(path_copy);
 						return -1;
 					}
@@ -532,13 +536,14 @@ int f_mkdir(const char *path, int permission) {
 					return 0;
 				}
 			} else {
+				printf("fail 5\n");
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
 			}
 		} else {
 			if(subfile.node < 0) {
-				printf("fail\n");
+				printf("fail 6\n");
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
