@@ -813,6 +813,9 @@ void test_f_readdir() {
 	assert(fd >= 0);
 	print_fd(fd);
 
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+
 	printf("%s\n", "Read /");
 	printf("%s\n", "Should successfully read /usr");
 	subfile = f_readdir(fd);
