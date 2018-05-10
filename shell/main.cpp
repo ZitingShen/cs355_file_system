@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     if(username == NULL || password == NULL ) {
       cout << "Failed to login. Try again." << endl;
       cout << "If you want to quit, type 'quit'." << endl;
-    } else if(strcmp(username, QUIT) == 0 || strcmp(password, QUIT)) {
+    } else if(strcmp(username, QUIT) == 0 || strcmp(password, QUIT) == 0) {
       exit(EXIT_FAILURE);
     } else if(strcmp(username, ROOT_USERNAME) == 0 && strcmp(password, ROOT_PASSWORD)) {
       uid = 0;
