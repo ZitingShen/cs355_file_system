@@ -182,7 +182,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 }
 
 size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
