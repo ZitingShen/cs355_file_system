@@ -69,11 +69,14 @@ int f_open(const char *path, const char *mode) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = 0;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = 0;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -95,12 +98,16 @@ int f_open(const char *path, const char *mode) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = 0;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
 
 	int return_fd = next_fd;
+	open_files[next_fd].offset = 0;
 	open_files[return_fd].mode = mode_binary;
 	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
 	if(increment_next_fd() == -1) {
@@ -179,7 +186,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 }
 
 size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
-	if (fd > OPEN_FILE_MAX){ //fd overflow
+	if (fd > OPEN_FILE_MAX || fd < 0){ //fd overflow
 		errno = EBADF;
 		return -1;
 	}
@@ -197,7 +204,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 
 		//change size if we are writing outside of original data block range
 		if (file_offset + write_size > cur_inode->size){
-			cur_inode -> size = file_offset + write_size;
+			cur_inode->size = file_offset + write_size;
 			write_inode(open_files[fd].node);
 		}
 		
@@ -258,7 +265,12 @@ void f_rewind(int fd){
 		errno = EBADF;
 	}
 	else{
-		open_files[fd].offset = 0;
+		if(open_files[fd].node == 0)
+			open_files[fd].offset = DIR_INIT_OFFSET-1;
+		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_NORMAL)
+			open_files[fd].offset = 0;
+		else if(cur_disk->inodes[open_files[fd].node].type == TYPE_DIRECTORY)
+			open_files[fd].offset = DIR_INIT_OFFSET;
 	}
 }
 
@@ -307,11 +319,14 @@ int f_remove(const char *path) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = 0;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = 0;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -336,7 +351,10 @@ int f_remove(const char *path) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = 0;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -350,11 +368,14 @@ int f_opendir(const char *path) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = 0;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = 0;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -376,7 +397,10 @@ int f_opendir(const char *path) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = 0;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -450,11 +474,14 @@ int f_mkdir(const char *path, int permission) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = 0;
+		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
-		open_files[next_fd].offset = 0;
+		if(open_files[next_fd].node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
@@ -467,6 +494,47 @@ int f_mkdir(const char *path, int permission) {
 					free(path_copy);
 					return -1;
 				} else {
+					char file_name[FILE_NAME_LENGTH];
+					bzero(file_name, FILE_NAME_LENGTH);
+					int parent_inode = open_files[next_fd].node;
+
+					if(open_files[next_fd].node == 0)
+						open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+					else
+						open_files[next_fd].offset = DIR_INIT_OFFSET;
+					subfile = find_subfile(next_fd, seg);
+					open_files[next_fd].node = subfile.node;
+					open_files[next_fd].offset = 0;
+					open_files[next_fd].mode = O_RDONLY;
+
+					file_name[0] = '.';
+					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						free(path_copy);
+						return -1;
+					}
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						free(path_copy);
+						return -1;
+					}
+					open_files[next_fd].offset++;
+					cur_disk->inodes[subfile.node].size++;
+
+					file_name[1] = '.';
+					if(f_write_helper(&parent_inode, sizeof(int), 1, next_fd, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+						free(path_copy);
+						return -1;
+					}
+					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
+						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+						free(path_copy);
+						return -1;
+					}
+					open_files[next_fd].offset++;
+					cur_disk->inodes[subfile.node].size++;
+					write_inode(subfile.node);
 					free(path_copy);
 					return 0;
 				}
@@ -484,7 +552,10 @@ int f_mkdir(const char *path, int permission) {
 		}
 
 		open_files[next_fd].node = subfile.node;
-		open_files[next_fd].offset = 0;
+		if(subfile.node == 0)
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		else
+			open_files[next_fd].offset = DIR_INIT_OFFSET;
 		open_files[next_fd].mode = O_RDONLY;
 		seg = strtok(NULL, PATH_DELIM);
 	}
@@ -536,9 +607,9 @@ int f_mount(const char *source, const char *target, int flags, void *data) {
 			cur_disk = disks;
 			root = 0;
 			open_files[next_fd].node = root;
-			open_files[next_fd].offset = 0;
+			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
 			open_files[next_fd].mode = O_RDONLY;
-			for (int i = 1; i < OPEN_FILE_MAX; i++){ //initialize the open file table
+			for (int i = next_fd+1; i != next_fd; i = (i+1)%OPEN_FILE_MAX){ //initialize the open file table
 				open_files[i].node = -1;
 				open_files[i].offset = 0;
 				open_files[i].mode = -1;
@@ -574,13 +645,13 @@ int f_umount(const char *target, int flags) {
 
 //****************************HELPER FUNCTIONS******************
 size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int file_offset){
-	struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
+	struct inode *cur_inode = &(cur_disk->inodes[open_files[fd].node]);
 	int BLOCK_SIZE = (cur_disk->sb).size;
 	//int N_POINTER = BLOCK_SIZE / sizeof(int);
 	size_t rem_size = size * nitems; //remaining read size
 	size_t cur_out_offset = 0;
 	//if offset is ahead of size, return error
-	if (cur_inode -> size < open_files[fd].offset){
+	if (cur_inode->size < open_files[fd].offset){
 		errno = EADDRNOTAVAIL;
 		return -1;
 	}
@@ -669,16 +740,23 @@ int convert_mode(const char* mode) {
 struct file_entry find_subfile(int dir_fd, char *file_name) {
 	struct file_entry subfile;
 	subfile.node = -1;
+	bzero(subfile.file_name, FILE_NAME_LENGTH);
+	int old_offset = open_files[dir_fd].offset;
 
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
 		return subfile;
 	}
 
-	subfile = f_readdir(dir_fd);
-
-	while(subfile.node >=0 && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
+	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
+	if(open_files[dir_fd].offset < file_size) {
 		subfile = f_readdir(dir_fd);
 	}
+	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
+		subfile = f_readdir(dir_fd);
+	}
+	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
+		subfile.node = -1;
+	open_files[dir_fd].offset = old_offset;
 	return subfile;
 }
 
@@ -712,10 +790,10 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, cur_disk->inodes[open_files[dir_fd].node].size*FILE_ENTRY_SIZE) != sizeof(int)) {
 		return -1;
 	}
-	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, cur_disk->inodes[open_files[dir_fd].node].size*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 		return -1;
 	}
 
@@ -736,6 +814,17 @@ int remove_file(int dir_fd, int file_inode_idx) {
 	dir_inode->size--;
 	write_inode(dir_inode_idx);
 
+	/* deal with freeblock created (if there is one), didn't change pointer in inode, 
+	but change in inode.size by the caller should suffice in not referencing to the freeblock.*/
+	int N_FILE_ENTRY = cur_disk->sb.size/FILE_ENTRY_SIZE;
+	int last_block_ind = dir_inode->size/N_FILE_ENTRY;
+	int last_block_rmd = dir_inode->size % N_FILE_ENTRY;
+	if(last_block_rmd == 0) {
+		struct data_block temp_block = load_block(dir_inode_idx, last_block_ind);
+		add_free_block(temp_block.data_addr);
+		free(temp_block.data);
+	}
+
 	/*deal with file inode*/
 	struct inode *file_inode = &(cur_disk->inodes[file_inode_idx]);
 	file_inode->nlink = 0; //change nlink to zero, assume nlink can be only 0 or 1
@@ -755,8 +844,6 @@ int remove_file(int dir_fd, int file_inode_idx) {
 /*
 1.find file entry and remove it
 2.move the last entry (if there is one) to the hole
-3.deal with freeblock created (if there is one), didn't change pointer in inode, 
-	but change in inode.size by the caller should suffice in not referencing to the freeblock.
 */
 int find_and_remove_entry(int dir_fd, int file_inode_idx){
 	struct file_entry target_subfile, subfile;
@@ -799,9 +886,14 @@ int remove_directory(int dir_fd) {
 	}
 	subfile = f_readdir(dir_fd);
 	while(subfile.node >=0) {
-		if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
+		if(subfile.node == open_files[dir_fd].node
+			|| subfile.node == cur_disk->inodes[open_files[dir_fd].node].parent) {
+		} else if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
 			open_files[next_fd].node = subfile.node;
-			open_files[next_fd].offset = 0;
+			if(subfile.node == 0)
+				open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+			else
+				open_files[next_fd].offset = DIR_INIT_OFFSET;
 			open_files[next_fd].mode = O_RDONLY;
 			int target_fd = next_fd;
 			if(increment_next_fd() < 0) {
@@ -1218,6 +1310,7 @@ void clean_i3block(int i3block_addr, size_t *rem_size){
 void add_free_block(int block_num){
 	int new_head = cur_disk->sb.free_block_head;
 	int *temp_free_block = (int *) malloc((cur_disk->sb).size);
+	bzero(temp_free_block, (cur_disk->sb).size);
  	/*read the free block*/
 	lseek(cur_disk->fd,
 		OFFSET_START + (cur_disk->sb.free_block_offset + new_head) * (cur_disk->sb).size,

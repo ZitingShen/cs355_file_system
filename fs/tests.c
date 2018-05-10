@@ -533,7 +533,7 @@ void test_f_rewind() {
 	assert(subfile.node >= 0);
 	print_file_entry(&subfile);
 
-	printf("%s\n", "Seek the offset of / to 1");
+	printf("%s\n", "Rewind the offset of /");
 	f_rewind(fd);
 	print_fd(fd);
 
@@ -652,8 +652,8 @@ void test_f_remove_large() {
 	fd = f_open("/design.txt", "w");
 	assert(fd >= 0);
 
-	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
-	printf("%s\n", "The numbers are contiguous integers 1000 to 20999");
+	printf("%s\n", "Write an integer array of size 3000000 to /design.txt.");
+	printf("%s\n", "The numbers are contiguous integers 1000 to 3000999");
 	int size = 3000000;
 	int *arr = malloc(sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
@@ -664,6 +664,9 @@ void test_f_remove_large() {
 	//print_disks();
 	print_fd(fd);
 	free(arr);
+
+	result = f_close(fd);
+	assert(result == 0);
 
 	printf("%s\n", "Remove file /design.txt");
 	result = f_remove("/design.txt");
@@ -856,6 +859,7 @@ void test_f_readdir_crazy() {
 	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
+		printf("%d\n", i);
 		assert(subfile.node >= 0);
 	}
 
@@ -1071,6 +1075,7 @@ int main() {
 	test_f_remove_crazy();
 	printf("\n");
 
+	// failed test
 	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create and remove a large /design.txt");
 	test_f_remove_large();
