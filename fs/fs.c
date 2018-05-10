@@ -45,10 +45,10 @@ void write_inode(int node);
 void write_data(struct data_block *db);
 
 void clean_all_block(struct inode *file_inode);
-void clean_dblock(int data_block_addr, size_t *rem_size);
-void clean_iblock(int iblock_addr, size_t *rem_size);
-void clean_i2block(int i2block_addr, size_t *rem_size);
-void clean_i3block(int i3block_addr, size_t *rem_size);
+void clean_dblock(int data_block_addr, int *rem_size);
+void clean_iblock(int iblock_addr, int *rem_size);
+void clean_i2block(int i2block_addr, int *rem_size);
+void clean_i3block(int i3block_addr, int *rem_size);
 
 void add_free_block(int block_num);
 int find_free_block();
@@ -1260,7 +1260,7 @@ void write_data(struct data_block *db) {
 3.change corresponding datablock pointer in inode to -1
 */
 void clean_all_block(struct inode *file_inode){
-	size_t rem_size = file_inode->size;
+	int rem_size = file_inode->size;
 	/*clean direct blocks*/
 	for (int i = 0; i < N_DBLOCKS; i++){
 		if (rem_size <= 0) break;
@@ -1284,12 +1284,12 @@ void clean_all_block(struct inode *file_inode){
 	}
 }
 
-void clean_dblock(int data_block_addr, size_t *rem_size){
+void clean_dblock(int data_block_addr, int *rem_size){
 	(*rem_size) -= cur_disk->sb.size;
 	add_free_block(data_block_addr);
 }
 
-void clean_iblock(int iblock_addr, size_t *rem_size){
+void clean_iblock(int iblock_addr, int *rem_size){
 	int N_POINTER = cur_disk->sb.size / POINTER_SIZE;
 	struct data_block iblock = load_data_block(iblock_addr);
 	int data_block_addr;
@@ -1301,7 +1301,7 @@ void clean_iblock(int iblock_addr, size_t *rem_size){
 	free(iblock.data);
 }
 
-void clean_i2block(int i2block_addr, size_t *rem_size){
+void clean_i2block(int i2block_addr, int *rem_size){
 	int N_POINTER = cur_disk->sb.size / POINTER_SIZE;
 	struct data_block i2block = load_data_block(i2block_addr);
 	int iblock_addr;
@@ -1313,7 +1313,7 @@ void clean_i2block(int i2block_addr, size_t *rem_size){
 	free(i2block.data);
 }
 
-void clean_i3block(int i3block_addr, size_t *rem_size){
+void clean_i3block(int i3block_addr, int *rem_size){
 	int N_POINTER = cur_disk->sb.size / POINTER_SIZE;
 	struct data_block i3block = load_data_block(i3block_addr);
 	int i2block_addr;
