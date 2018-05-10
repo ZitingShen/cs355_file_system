@@ -193,12 +193,14 @@ bool cat(vector<string> argv){
 	}
 
 	string file_name = argv[1];
-	char * file_name_char = strdup(file_name.c_str());
+	char *file_name_char = strdup(file_name.c_str());
 	int fd_in;
 	if ((fd_in = f_open(file_name_char, "r")) < 0){
 		cerr << "error: fail to open the file" << endl;
+		free(file_name_char);
 		return true;
 	}
+	free(file_name_char);
 
 	size_t rem_size = f_seek(fd_in, 0, SEEK_END);
 	f_rewind(fd_in);
