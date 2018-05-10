@@ -793,10 +793,10 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	cur_disk->inodes[new_inode].i3block = 0;
 	write_inode(new_inode); // write child inode back to disk
 
-	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
+	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, cur_disk->inodes[open_files[dir_fd].node].size*FILE_ENTRY_SIZE) != sizeof(int)) {
 		return -1;
 	}
-	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
+	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, cur_disk->inodes[open_files[dir_fd].node].size*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
 		return -1;
 	}
 
