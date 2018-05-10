@@ -201,7 +201,6 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		//change size if we are writing outside of original data block range
 		if (file_offset + write_size > cur_inode->size){
 			cur_inode->size = file_offset + write_size;
-			printf("%d\n", open_files[fd].node);
 			write_inode(open_files[fd].node);
 		}
 		
@@ -747,11 +746,9 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	int file_size = cur_disk->inodes[open_files[dir_fd].node].size;
 	if(open_files[dir_fd].offset < file_size) {
 		subfile = f_readdir(dir_fd);
-		printf("%s ---- %d\n", file_name, subfile.node);
 	}
 	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
-		printf("%s ---- %d\n", file_name, subfile.node);
 	}
 	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
 		subfile.node = -1;
