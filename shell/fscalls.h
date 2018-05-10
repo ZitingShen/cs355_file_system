@@ -3,6 +3,7 @@
 
 #include "fs.h"
 #include "format.h"
+#include "fs_debug.h"
 #include <iostream>
 #include <fcntl.h>
 #include <stdio.h>
@@ -39,9 +40,6 @@ bool rm(vector<string> argv);
 bool mount(vector<string> argv);
 
 bool umount(vector<string> argv);
-
-
-
 
 
 #endif

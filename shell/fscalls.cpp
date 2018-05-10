@@ -66,10 +66,13 @@ bool chmod(vector<string> argv){
 	string file_name = argv[1];
 	string permission = argv[2];
 
-	if (change_file_mode(file_name.c_str(), strdup(permission.c_str()))!=0){
+	char *permission_copy = strdup(permission.c_str());
+	if (change_file_mode(file_name.c_str(), permission_copy)!=0){
 		cerr << "error: change mode failure" << endl;
+		free(permission_copy);
 		return true;
 	}
+	free(permission_copy);
 	return true;
 }
 
@@ -216,7 +219,7 @@ bool cat(vector<string> argv){
 				break;
 			}
 			strcat(cmd, "\n");
-			if (f_write(cmd, strlen(cmd), 1, fd_out)< 0){
+			if (f_write(cmd, strlen(cmd), 1, fd_out) != strlen(cmd)){
 				cerr << "error: fail to write into the file" << endl;
 				return true;
 			}
@@ -254,7 +257,7 @@ bool cat(vector<string> argv){
 	while(rem_size > 0){
 		remainder = rem_size % BLOCK_SIZE;
 		if (remainder == 0) remainder = BLOCK_SIZE;
-		if (f_read(buf, remainder, 1, fd_in) < 0) {
+		if (f_read(buf, remainder, 1, fd_in) != remainder) {
 			cerr << "error: fail to read in the file" << endl;
 			return true;
 		}
@@ -262,7 +265,7 @@ bool cat(vector<string> argv){
 			printf("%s\n", buf);
 		}
 		else{
-			if (f_write(buf, remainder, 1, fd_out) < 0){
+			if (f_write(buf, remainder, 1, fd_out) != remainder){
 				free(buf);
 				cerr << "error: fail to write into the file" << endl;
 				return true;
@@ -311,50 +314,63 @@ bool more(vector<string> argv){
    	int fd_in;
    	if ((fd_in = f_open(in_file_char, "r")) < 0)  {
    		cerr << "error: fail to read file" << endl;
+   		free(in_file_char);
    		return true;
    	}
+   	free(in_file_char);
 
    	f_rewind(fd_in);
-	size_t rem_size = f_seek(fd_in, 0, SEEK_END);
+	int rem_size = f_seek(fd_in, 0, SEEK_END);
 	f_rewind(fd_in);
 
+	if(rem_size == 0)
+		return true;
+
 	int remainder;
-	char* buf = (char*) malloc(size.ws_row+1);
-	for (int i = 0; i < size.ws_col; i++){
-		if (rem_size <= 0) break;
-		remainder = rem_size % size.ws_row;
-		if (remainder == 0) remainder = size.ws_row - 1;
-		if (f_read(buf, remainder, 1, fd_in) < 0){
-			free(buf);
-			cerr << "error: fail to read file" << endl;
-			return true;
-		}
-		cout<< buf <<endl;
-		//printf("%s\n", buf);
-		rem_size -= remainder;
+	char* buf;
+	// hard set the screen size
+	int screen_size = size.ws_row*size.ws_col;
+	if (rem_size > screen_size)
+		remainder = screen_size;
+	else
+		remainder = rem_size;
+	buf = (char*) malloc(screen_size);
+	if (f_read(buf, remainder, 1, fd_in) != remainder){
+		free(buf);
+		cerr << "error: fail to read file" << endl;
+		return true;
 	}
+	cout << buf << flush;
+	free(buf);
+	rem_size -= remainder;
 
 	/*for continuous use*/
 	bool cont = true;
-	while (cont){
-		char* cmd = readline("");
-		if (strcmp(cmd, "q") == 0){
-			break;
-		}
-		else if(strcmp(cmd, "\n") == 0){
-			if (rem_size <= 0) continue;
-			remainder = rem_size % size.ws_row;
-			if (remainder == 0) remainder = size.ws_row;
-			if (f_read(buf, remainder, 1, fd_in)< 0){
+	while (cont && rem_size > 0){
+		char *cmd = readline("");
+		if(cmd == NULL) {
+			cont = false;
+		} else if (strcmp(cmd, "q") == 0){
+			cont = false;
+		} else if(strcmp(cmd, "") == 0){
+			if (rem_size > screen_size)
+				remainder = screen_size;
+			else
+				remainder = rem_size;
+			buf = (char*) malloc(screen_size);
+			if (f_read(buf, remainder, 1, fd_in) != remainder){
 				free(buf);
 				cerr << "error: fail to read file" << endl;
 				return true;
 			}
-			printf("%s\n", buf);
+			cout << buf << flush;
+			free(buf);
 			rem_size -= remainder;
 		}
+		if(cmd)
+			free(cmd);
 	}
-	free(buf);
+	cout << endl;
 
 	if (f_close(fd_in)!=0) {
 		cerr << "error: fail to close file" << endl;
