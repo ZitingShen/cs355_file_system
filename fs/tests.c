@@ -659,12 +659,15 @@ void test_f_remove_large() {
 	for(int k = 0; k < size; k++) {
 		arr[k] = k+1000;
 	}
-	//result = f_write(&(arr[0]), sizeof(int), size, fd);
-	//assert(result == sizeof(int)*size);
+	result = f_write(&(arr[0]), sizeof(int), size, fd);
+	assert(result == sizeof(int)*size);
 	//print_disks();
 	print_fd(fd);
 	free(arr);
 
+	result = f_close(fd);
+	assert(result == 0);
+	
 	printf("%s\n", "Remove file /design.txt");
 	result = f_remove("/design.txt");
 	assert(result == 0);
