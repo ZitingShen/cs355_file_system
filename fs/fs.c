@@ -1266,15 +1266,18 @@ void clean_all_block(struct inode *file_inode){
 		if (rem_size <= 0) break;
 		clean_dblock((file_inode->dblocks)[i], &rem_size);
 	}
+	printf("%d\n", rem_size);
 	/*clean indirect blocks*/
 	for (int i = 0; i < N_IBLOCKS; i++){
 		if (rem_size <= 0) break;
 		clean_iblock((file_inode->iblocks)[i], &rem_size);
 	}
+	printf("%d\n", rem_size);
 	/*clean i2block*/
 	if (rem_size > 0){
 		clean_i2block(file_inode->i2block, &rem_size);
 	}
+	printf("%d\n", rem_size);
 	/*clean i3block*/
 	if (rem_size > 0){
 		clean_i3block(file_inode->i3block, &rem_size);
