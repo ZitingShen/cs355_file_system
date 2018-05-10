@@ -489,7 +489,7 @@ int f_mkdir(const char *path, int permission) {
 		subfile = find_subfile(next_fd, seg);
 		if(strend(path, seg)) {
 			if(subfile.node < 0) {
-				printf("create_file fd:%d seg:%s\n", next_fd, seg);
+				printf("create_file inode:%d seg:%s\n", open_files[next_fd].node, seg);
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					free(path_copy);
 					return -1;
