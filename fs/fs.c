@@ -749,6 +749,7 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
 	}
+	printf("%s ---- %s\n", file_name, subfile.file_name);
 	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
 		subfile.node = -1;
 	open_files[dir_fd].offset = old_offset;
