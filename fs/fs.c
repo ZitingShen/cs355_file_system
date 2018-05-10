@@ -330,20 +330,17 @@ int f_remove(const char *path) {
 	while(seg) {
 		subfile = find_subfile(next_fd, seg);
 		if(subfile.node < 0) {
-			printf("fail 1\n");
 			free(path_copy);
 			errno = ENOENT;
 			return -1;
 		}
 		if(strend(path, seg)) {
 			if(cur_disk->inodes[subfile.node].type == TYPE_DIRECTORY) {
-				printf("fail 2\n");
 				free(path_copy);
 				return -1;
 			}
 
 			if(remove_file(next_fd, subfile.node) != 0) {
-				printf("fail 3\n");
 				free(path_copy);
 				return -1;
 			}
