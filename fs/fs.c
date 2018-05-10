@@ -538,6 +538,7 @@ int f_mkdir(const char *path, int permission) {
 			}
 		} else {
 			if(subfile.node < 0) {
+				printf("fail\n");
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
