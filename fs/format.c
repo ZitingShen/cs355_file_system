@@ -146,11 +146,11 @@ int format(const char *file_name, int file_size) {
 	while(counter > 0) {
 		offset -= BLOCK_SIZE;
 		lseek(fd, offset, SEEK_SET);
-		if(counter >= FREE_RESERVE_MAX-1) {
+		if(counter >= FREE_RESERVE_MAX) {
 			free_reserve_counter = FREE_RESERVE_MAX;
 			out = write(fd, &free_reserve_counter, sizeof(int));
 		} else {
-			free_reserve_counter = counter+1;
+			free_reserve_counter = counter;
 			out = write(fd, &free_reserve_counter, sizeof(int));
 		}
 		if(out != sizeof(int)) {
