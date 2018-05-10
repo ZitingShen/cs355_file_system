@@ -109,6 +109,13 @@ int f_open(const char *path, const char *mode) {
 	int return_fd = next_fd;
 	open_files[next_fd].offset = 0;
 	open_files[return_fd].mode = mode_binary;
+	if(uid > 0 && uid != cur_disk->inodes[open_files[return_fd].node].uid) {
+		if((mode_binary & O_RDWR) || (mode_binary & O_WRONLY)) {
+			errno = EACCES;
+			free(path_copy);
+			return -1;
+		}
+	}
 	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
 	if(increment_next_fd() == -1) {
 		free(path_copy);
@@ -125,6 +132,10 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 	}
 	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
+		return -1;
+	}
+	if((open_files[fd].mode & O_RDONLY) || (open_files[fd].mode & O_RDWR)) {
+		errno = EACCES;
 		return -1;
 	}
 	else{
@@ -194,7 +205,12 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 	if (open_files[fd].node < 0){ //fd not pointing to a valid inode
 		errno = EBADF;
 		return -1;
-	} else{
+	}
+	if((open_files[fd].mode & O_WRONLY) || (open_files[fd].mode & O_RDWR)) {
+		errno = EACCES;
+		return -1;
+	} 
+	else{
 		if(open_files[fd].mode & O_TRUNC) {
 			f_rewind(fd);
 		}
@@ -347,6 +363,11 @@ int f_remove(const char *path) {
 				return -1;
 			}
 
+			if(uid > 0 && uid != cur_disk->inodes[subfile.node].uid) {
+				errno = EACCES;
+				free(path_copy);
+				return -1;
+			}
 			if(remove_file(next_fd, subfile.node) != 0) {
 				free(path_copy);
 				return -1;
@@ -568,6 +589,10 @@ int f_mkdir(const char *path, int permission) {
 int f_rmdir(const char *path) {
 	int fd = f_opendir(path);
 	if(fd > OPEN_FILE_MAX || fd < 0) {
+		return -1;
+	}
+	if(uid > 0 && uid != cur_disk->inodes[open_files[fd].node].uid) {
+		errno = EACCES;
 		return -1;
 	}
 	if(remove_directory(fd) < 0) {
