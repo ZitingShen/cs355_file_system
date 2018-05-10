@@ -130,15 +130,18 @@ bool cd(vector<string> argv){
 	}
 
 	string path = argv[1];
-	if (f_closedir(pwd_fd) != 0){
-		cerr << "fail to close the directory" << endl;
-		return true;
-	}
 	char *path_copy = strdup(path.c_str());
+	if(path == "." || path == "..") {
+		f_seek(pwd_fd, 0, SEEK_SET);
+	}
 	int nex_dir = f_opendir(path_copy);
 	if (nex_dir < 0){
 		cerr << "fail to open the directory" << endl;
 		free(path_copy);
+		return true;
+	}
+	if (f_closedir(pwd_fd) != 0){
+		cerr << "fail to close the directory" << endl;
 		return true;
 	}
 	free(path_copy);

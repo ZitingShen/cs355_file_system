@@ -246,7 +246,7 @@ int f_seek(int fd, long offset, int whence){
 			new_offset = offset;
 		}
 		else if(whence == SEEK_CUR){
-			new_offset = open_files[fd].offset+ offset;
+			new_offset = open_files[fd].offset + offset;
 		}
 		else{
 			new_offset = ((cur_disk->inodes)[open_files[fd].node]).size + offset;
@@ -368,14 +368,12 @@ int f_opendir(const char *path) {
 	char *seg = strtok(path_copy, PATH_DELIM);
 	if((*path) == PATH_ROOT) { // absolute path
 		open_files[next_fd].node = root;
-		open_files[next_fd].offset = DIR_INIT_OFFSET-1;
+		open_files[next_fd].offset = 0;
 		open_files[next_fd].mode = O_RDONLY;
 	} else { // relative path
 		open_files[next_fd].node = open_files[pwd_fd].node;
 		if(open_files[next_fd].node == 0)
-			open_files[next_fd].offset = DIR_INIT_OFFSET-1;
-		else
-			open_files[next_fd].offset = DIR_INIT_OFFSET;
+			open_files[next_fd].offset = 0;
 		open_files[next_fd].mode = O_RDONLY;
 	}
 
