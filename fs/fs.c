@@ -487,7 +487,6 @@ int f_mkdir(const char *path, int permission) {
 		if(strend(path, seg)) {
 			if(subfile.node < 0) {
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
-					printf("fail 0\n");
 					free(path_copy);
 					return -1;
 				} else {
@@ -495,7 +494,6 @@ int f_mkdir(const char *path, int permission) {
 					bzero(file_name, FILE_NAME_LENGTH);
 					int parent_inode = open_files[next_fd].node;
 
-					printf("parent: %d, offset:%d, size: %d\n", parent_inode, open_files[next_fd].offset, cur_disk->inodes[parent_inode].size);
 					subfile = find_subfile(next_fd, seg);
 					open_files[next_fd].node = subfile.node;
 					open_files[next_fd].offset = 0;
@@ -504,13 +502,11 @@ int f_mkdir(const char *path, int permission) {
 					file_name[0] = '.';
 					if(f_write_helper(&(subfile.node), sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-						printf("fail 1\n");
 						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
-						printf("fail 2\n");
 						free(path_copy);
 						return -1;
 					}
@@ -520,32 +516,27 @@ int f_mkdir(const char *path, int permission) {
 					file_name[1] = '.';
 					if(f_write_helper(&parent_inode, sizeof(int), 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-						printf("fail 3\n");
 						free(path_copy);
 						return -1;
 					}
 					if(f_write_helper(file_name, FILE_NAME_LENGTH, 1, next_fd, 
 						open_files[next_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
-						printf("fail 4\n");
 						free(path_copy);
 						return -1;
 					}
 					open_files[next_fd].offset++;
 					cur_disk->inodes[subfile.node].size++;
-					printf("node: %d size: %d\n", subfile.node, cur_disk->inodes[subfile.node].size);
 					write_inode(subfile.node);
 					free(path_copy);
 					return 0;
 				}
 			} else {
-				printf("fail 5\n");
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
 			}
 		} else {
 			if(subfile.node < 0) {
-				printf("fail 6\n");
 				free(path_copy);
 				errno = ENOENT;
 				return -1;
@@ -755,9 +746,6 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
 	}
-	printf("%s\n", file_name);
-	printf("%s\n", subfile.file_name);
-	printf("offset:     %d\n", open_files[dir_fd].offset);
 	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
 		subfile.node = -1;
 	open_files[dir_fd].offset = old_offset;
@@ -770,7 +758,6 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	// check if more inode could be added
 	int INODE_MAX = (cur_disk->sb.data_offset - cur_disk->sb.inode_offset)*cur_disk->sb.size/sizeof(struct inode);
 	if(cur_disk->inodes[new_inode].next_inode >= INODE_MAX) {
-		printf("fail --1\n");
 		errno = ENOSPC;
 		return -1;
 	}
@@ -796,11 +783,9 @@ int create_file(int dir_fd, char *filename, int permission, char type) {
 	write_inode(new_inode); // write child inode back to disk
 
 	if(f_write_helper(&new_inode, sizeof(int), 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE) != sizeof(int)) {
-		printf("fail --2\n");
 		return -1;
 	}
 	if(f_write_helper(filename, FILE_NAME_LENGTH, 1, dir_fd, open_files[dir_fd].offset*FILE_ENTRY_SIZE+sizeof(int)) != FILE_NAME_LENGTH) {
-		printf("fail --3\n");
 		return -1;
 	}
 
