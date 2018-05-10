@@ -742,7 +742,7 @@ int convert_mode(const char* mode) {
 struct file_entry find_subfile(int dir_fd, char *file_name) {
 	struct file_entry subfile;
 	subfile.node = -1;
-	bzero(subfile.filename, FILE_NAME_LENGTH);
+	bzero(subfile.file_name, FILE_NAME_LENGTH);
 	int old_offset = open_files[dir_fd].offset;
 
 	if(cur_disk->inodes[open_files[dir_fd].node].type != TYPE_DIRECTORY) {
@@ -756,7 +756,6 @@ struct file_entry find_subfile(int dir_fd, char *file_name) {
 	while(open_files[dir_fd].offset < file_size && strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0) {
 		subfile = f_readdir(dir_fd);
 	}
-	printf("%s\n", subfile.file_name);
 	if(strncmp(file_name, subfile.file_name, FILE_NAME_LENGTH) != 0)
 		subfile.node = -1;
 	open_files[dir_fd].offset = old_offset;
