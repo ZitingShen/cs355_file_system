@@ -654,7 +654,7 @@ void test_f_remove_large() {
 
 	printf("%s\n", "Write an integer array of size 3000000 to /design.txt.");
 	printf("%s\n", "The numbers are contiguous integers 1000 to 3000999");
-	int size = 5;
+	int size = 3000000;
 	int *arr = malloc(sizeof(int)*size);
 	for(int k = 0; k < size; k++) {
 		arr[k] = k+1000;
@@ -1078,7 +1078,7 @@ int main() {
 	// failed test
 	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test create and remove a large /design.txt");
-	// test_f_remove_large();
+	test_f_remove_large();
 	printf("\n");
 
 	// !!!! another error in valgrind for mysterious reason
