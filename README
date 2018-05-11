@@ -3,9 +3,11 @@ Author: Linyi Chen & Ziting Shen
 
 Compile:
 make
+(make format)
 
 Execute:
 ./main
+(./format <disk name> [-s size])
 
 Disk Format:
 ************************

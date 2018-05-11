@@ -31,5 +31,8 @@ format.o: format.c
 fs.o: fs.c
 	gcc $(CFLAGS2) -c fs.c -o fs.o
 
+format: format_main.c format.o
+	$(CC) $(CFLAGS) format.o $< -o $@
+
 clean:
 	rm main parse.o handle_signal.o evaluate.o joblist.o
