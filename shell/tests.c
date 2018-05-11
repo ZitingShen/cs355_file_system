@@ -208,7 +208,7 @@ void test_f_write_multiple_times() {
 	int i;
 	int size = 1000;
 	for(int k = 0; k < size; k++) {
-		i = k+1000;
+		i = k+size;
 		result = f_write(&i, sizeof(int), 1, fd);
 		assert(result == sizeof(int));
 	}
@@ -223,6 +223,7 @@ void test_f_write_multiple_times() {
 	for(int k = 0; k < size; k++) {
 		result = f_read(&j, sizeof(int), 1, fd);
 		assert(result == sizeof(int));
+		printf("%d %d\n", j, k+size);
 		assert(j == (k+size));
 	}
 	printf("%s\n", "OK");
