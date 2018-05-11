@@ -9,7 +9,7 @@ using namespace std;
 
 bool evaluate (string *command, vector<vector<string>> *parsed_segments){
 	set<string> built_in_commands = {"fg", "bg", "kill", "jobs", "history", "exit", "ls", "mkdir",
-		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "umount"};
+		"rmdir", "cd", "pwd", "cat", "more", "rm", "mount", "umount", "chmod"};
 	
 	bool cont = true;
 	int len = parsed_segments->size();
@@ -390,7 +390,7 @@ bool built_in_exec(vector<string> argv) {
 	} else if(cmd.compare("ls") == 0) {
 		return ls(argv);
 	} else if(cmd.compare("chmod") == 0) {
-		return ls(argv);
+		return chmod(argv);
 	} else if(cmd.compare("mkdir") == 0) {
 		return mkdir(argv);
 	} else if(cmd.compare("rmdir") == 0) {

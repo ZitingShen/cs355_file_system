@@ -103,7 +103,7 @@ int f_umount(const char *target, int flags);
 /*------------helper functions for shell-------------------------*/
 char* get_path(int inode_idx);
 
-int change_file_mode(const char *path, char* permissions);
+int change_file_mode(const char *path, int permissions);
 
 int convert_mode(const char* mode);
 
