@@ -112,15 +112,16 @@ int f_open(const char *path, const char *mode) {
 			return -1;
 		}
 	}
-	open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
+	if(open_files[return_fd].mode & O_APPEND) {
+		open_files[return_fd].offset = cur_disk->inodes[open_files[return_fd].node].size;
+	} else {
+		open_files[return_fd].offset = 0;
+	}
 	if(increment_next_fd() == -1) {
 		free(path_copy);
 		return -1;
 	}
 	free(path_copy);
-	if(open_files[return_fd].mode & O_TRUNC) {
-		f_rewind(fd);
-	}
 	return return_fd;
 }
 
