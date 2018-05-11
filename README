@@ -56,3 +56,51 @@ but I checked and everything seemed to be fine. I tried to fix them, but more er
 #define PERMISSION_X		1
 
 9. For redirection, one temporary file names 'temp' will be generated to redirect the file into our formatted disk.
+
+
+List of Files:
+	shell_files:
+		1)The following are the same as our previous shell design:
+		evaluate.cpp, evaluate.h, handle_signal.cpp, handle_signal.h, joblist.cpp, joblist.h, parse.cpp, parse.h
+		main.cpp
+		2)We add two more files to shell:
+		fscalls.h and fscalls.cpp. These two contain the new built-in functions we added to our shell.
+	file_system_files:
+		1) fs.c and fs.h: these two include file_system calls started with "f_"
+		2) util.h: contains struct of superblock and inode
+		3) tests.c: conatins unit tests of our library calls. Type "make tests", then "./tests", if get to the last printf in test.c, then all tests passed!
+		3) fs_debug.h: contains print functions that are used for debugging
+
+
+
+(a) design of your file system (enough so that I can understand what you are actually doing) 
+
+The file system is basically following the GNU standard. All the file operations return file descriptors.
+
+(b) whether your final implementation changed from your design document. If so, why.
+
+design of our file system is mostly the same as our design doc. Following are some detailed specification that we didn't mention in our design doc.
+
+1) For relative/absolute path, we let the library function calls to do the translation
+2) For "more", type "q" or "ctrl+d" will quit, everything else will for to display one more row of file content.
+
+
+(c) a list of what’s working, partially working and not working (d) how you tested.
+
+Things that didn't work during demo but now works:
+1) cat: it supports ">" and ">>" redirection, either from a file to a file, from stdin to a file "cat > [file_name]", or simply "cat [file_name]" that output file contect on screen.
+2) more: it shows content of a file one screen full at a time. If type "q" or "ctrl + d", will quit displaying content. If type anything else, will show on the screen one extra row at a time.
+3) ls: Implemented -F and -l flags
+4) chmod: fully implemented
+5) log in with user name and pass word: (supports root, default and superuser)
+	ROOT_USERNAME     "root"
+	ROOT_PASSWORD     "rootpwd"
+	DEFAULT_USERNAME  "default"
+	DEFAULT_PASSWORD  "defaultpwd"
+	USER_SUPER        "/usr_super"
+	USER_DEFAULT      "/usr_default"
+6) all other functionalities not specify in the below list of things that does not work
+
+List of things that does not work
+1) only supports redirection with cat
+2) cat does not support "<"
