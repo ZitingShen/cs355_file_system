@@ -220,7 +220,7 @@ bool cat(vector<string> argv){
 	if (argv.size() == 4 && (argv[2] == ">" || argv[2] == ">>")){
 		string out_name = argv[3];
 		char* out_name_char = strdup(out_name.c_str());
-		if ((fd_out = f_open(out_name_char, "w")) < 0) {
+		if ((fd_out = f_open(out_name_char, "r+")) < 0) {
 			cerr << "fail to open the file" << endl;
 			free(out_name_char);
 			return true;
@@ -238,7 +238,7 @@ bool cat(vector<string> argv){
 		string file_name = argv[2];
 		char *file_name_char = strdup(file_name.c_str());
 		int fd_out;
-		if ((fd_out = f_open(file_name_char, "w")) < 0){
+		if ((fd_out = f_open(file_name_char, "r+")) < 0){
 			cerr << "error: fail to open the file" << endl;
 			free(file_name_char);
 			return true;
@@ -279,7 +279,7 @@ bool cat(vector<string> argv){
 	string file_name = argv[1];
 	char *file_name_char = strdup(file_name.c_str());
 	int fd_in;
-	if ((fd_in = f_open(file_name_char, "r")) < 0){
+	if ((fd_in = f_open(file_name_char, "r+")) < 0){
 		cerr << "error: fail to open the file" << endl;
 		free(file_name_char);
 		return true;
@@ -357,7 +357,7 @@ bool more(vector<string> argv){
    	char* in_file_char = strdup(in_file_name.c_str());
    	
    	int fd_in;
-   	if ((fd_in = f_open(in_file_char, "r")) < 0)  {
+   	if ((fd_in = f_open(in_file_char, "r+")) < 0)  {
    		cerr << "error: fail to read file" << endl;
    		free(in_file_char);
    		return true;

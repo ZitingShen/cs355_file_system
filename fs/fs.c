@@ -106,7 +106,7 @@ int f_open(const char *path, const char *mode) {
 	open_files[next_fd].offset = 0;
 	open_files[return_fd].mode = mode_binary;
 	if(uid > 0 && uid != cur_disk->inodes[open_files[return_fd].node].uid) {
-		if((mode_binary & O_RDWR) || (mode_binary & O_WRONLY)) {
+		if(!(mode_binary & O_RDWR) && !(mode_binary & O_WRONLY)) {
 			errno = EACCES;
 			free(path_copy);
 			return -1;
@@ -130,7 +130,7 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		errno = EBADF;
 		return -1;
 	}
-	if((open_files[fd].mode & O_RDONLY) || (open_files[fd].mode & O_RDWR)) {
+	if(!(open_files[fd].mode & O_RDONLY) && !(open_files[fd].mode & O_RDWR)) {
 		errno = EACCES;
 		return -1;
 	}
@@ -202,7 +202,7 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		errno = EBADF;
 		return -1;
 	}
-	if((open_files[fd].mode & O_WRONLY) || (open_files[fd].mode & O_RDWR)) {
+	if(!(open_files[fd].mode & O_WRONLY) && !(open_files[fd].mode & O_RDWR)) {
 		errno = EACCES;
 		return -1;
 	} 
