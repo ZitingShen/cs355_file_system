@@ -821,11 +821,13 @@ void test_f_readdir_crazy() {
 	assert(fd >= 0);
 	print_fd(fd);
 
+	subfile = f_readdir(fd);
+	assert(subfile.node >= 0);
+
 	printf("%s\n", "Read / for 100 times");
 	printf("%s\n", "Should successfully read /usr<index>");
 	for(int i = 0; i < size; i++) {
 		subfile = f_readdir(fd);
-		printf("%d\n", i);
 		assert(subfile.node >= 0);
 	}
 
