@@ -259,10 +259,8 @@ bool cat(vector<string> argv){
 			strcat(cmd, "\n");
 			if (f_write(cmd, strlen(cmd), 1, fd_out) != strlen(cmd)){
 				cerr << "error: fail to write into the file" << endl;
-				free(cmd);
 				return true;
 			}
-			free(cmd);
 		}
 		return true;
 	} else{

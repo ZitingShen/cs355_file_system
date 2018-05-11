@@ -85,8 +85,6 @@ int main(int argc, char **argv) {
       cout << "Failed to login. Try again." << endl;
       cout << "If you want to quit, type 'quit'." << endl;
     }
-    free(username);
-    free(password);
   }
   
   while(cont) {
@@ -140,7 +138,5 @@ int main(int argc, char **argv) {
         }
       }
     }
-
-    free(cmdline);
   }
 }
