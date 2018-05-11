@@ -134,6 +134,10 @@ size_t f_read(void *ptr, size_t size, size_t nitems, int fd){
 		errno = EACCES;
 		return -1;
 	}
+	if(!(cur_disk->inodes[open_files[fd].node].permission & PERMISSION_R)) {
+		errno = EACCES;
+		return -1;
+	}
 	else{
 		int BLOCK_SIZE = (cur_disk->sb).size;
 		//int N_POINTER = BLOCK_SIZE / sizeof(int);
@@ -205,7 +209,11 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 	if(!(open_files[fd].mode & O_WRONLY) && !(open_files[fd].mode & O_RDWR)) {
 		errno = EACCES;
 		return -1;
-	} 
+	}
+	if(!(cur_disk->inodes[open_files[fd].node].permission & PERMISSION_W)) {
+		errno = EACCES;
+		return -1;
+	}
 	else{
 		if(open_files[fd].mode & O_TRUNC) {
 			f_rewind(fd);
@@ -444,6 +452,11 @@ struct file_entry f_readdir(int fd) {
 		errno = ENOENT;
 		return subfile;
 	}
+
+	if(!(cur_disk->inodes[open_files[fd].node].permission & PERMISSION_R)) {
+		errno = EACCES;
+		return subfile;
+	}
 	int FILE_ENTRY_N = cur_disk->sb.size / FILE_ENTRY_SIZE;
 	int block_num = open_files[fd].offset / FILE_ENTRY_N;
 	int block_rmd = open_files[fd].offset % FILE_ENTRY_N;
@@ -508,6 +521,10 @@ int f_mkdir(const char *path, int permission) {
 		subfile = find_subfile(next_fd, seg);
 		if(strend(path, seg)) {
 			if(subfile.node < 0) {
+				if(!(cur_disk->inodes[open_files[next_fd].node].permission & PERMISSION_W)) {
+					errno = EACCES;
+					return -1;
+				}
 				if(create_file(next_fd, seg, permission, TYPE_DIRECTORY) < 0) {
 					free(path_copy);
 					return -1;
@@ -1462,16 +1479,17 @@ char *get_dir_name(int dir_fd, int inode_idx) {
 	return result;
 }
 
-int change_file_mode(const char *path, char* permissions){
-
-	int file_fd = f_open(strdup(path), permissions);
+int change_file_mode(const char *path, int permissions){
+	char *path_copy = strdup(path);
+	int file_fd = f_open(path_copy, "r");
+	free(path_copy);
 	if (file_fd < 0){
 		return -1;
 	}
 	int file_inode_idx = open_files[file_fd].node;
 	struct inode * file_inode = &((cur_disk->inodes)[file_inode_idx]);
-	file_inode->permission = convert_mode(permissions);
-	if (f_close(file_fd)!=0){
+	file_inode->permission = permissions;
+	if (f_close(file_fd) < 0){
 		return -1;
 	}
 	return 0;
