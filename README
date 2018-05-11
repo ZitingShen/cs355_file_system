@@ -44,3 +44,5 @@ but I checked and everything seemed to be fine. I tried to fix them, but more er
 #define PERMISSION_R		4
 #define	PERMISSION_W		2
 #define PERMISSION_X		1
+
+9. For redirection, one temporary file names 'temp' will be generated to redirect the file into our formatted disk.
