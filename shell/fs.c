@@ -118,6 +118,9 @@ int f_open(const char *path, const char *mode) {
 		return -1;
 	}
 	free(path_copy);
+	if(open_files[return_fd].mode & O_TRUNC) {
+		f_rewind(fd);
+	}
 	return return_fd;
 }
 
@@ -215,9 +218,6 @@ size_t f_write(const void *ptr, size_t size, size_t nitems, int fd){
 		return -1;
 	}
 	else{
-		if(open_files[fd].mode & O_TRUNC) {
-			f_rewind(fd);
-		}
 		struct inode * cur_inode = &((cur_disk->inodes)[open_files[fd].node]);
 		int file_offset = open_files[fd].offset; 
 
