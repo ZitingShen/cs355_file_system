@@ -13,15 +13,17 @@
 #define DEFAULT_USERNAME  "default"
 #define DEFAULT_PASSWORD  "defaultpwd"
 #define QUIT              "quit"
+#define USER_SUPER        "/usr_super"
+#define USER_DEFAULT      "/usr_default"
 
 using namespace std;
 
 struct joblist_t joblist;
 struct termios shell_tmodes;
 pid_t shell_pid;
-int pwd_fd;
-int uid;
-int mount_or_not;
+int pwd_fd = 0;
+int uid = 0;
+int mount_or_not = 0;
 
 int main(int argc, char **argv) {
   tcgetattr (shell_terminal, &shell_tmodes);
@@ -57,7 +59,6 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
   mount_or_not++;
-  pwd_fd = f_opendir("/");
 
   cout << "Login" << endl;
   while(login_cont) {
@@ -69,9 +70,15 @@ int main(int argc, char **argv) {
     } else if(strcmp(username, QUIT) == 0 || strcmp(password, QUIT) == 0) {
       exit(EXIT_FAILURE);
     } else if(strcmp(username, ROOT_USERNAME) == 0 && strcmp(password, ROOT_PASSWORD) == 0) {
+      f_mkdir(USER_SUPER, PERMISSION_DEFAULT);
+      f_mkdir(USER_DEFAULT, PERMISSION_DEFAULT);
+      pwd_fd = f_opendir(USER_SUPER);
       uid = 0;
       login_cont = false;
     } else if(strcmp(username, DEFAULT_USERNAME) == 0 && strcmp(password, DEFAULT_PASSWORD) == 0) {
+      f_mkdir(USER_SUPER, PERMISSION_DEFAULT);
+      f_mkdir(USER_DEFAULT, PERMISSION_DEFAULT);
+      pwd_fd = f_opendir(USER_DEFAULT);
       uid = 1;
       login_cont = false;
     } else {
