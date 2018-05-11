@@ -4,10 +4,13 @@ Author: Linyi Chen & Ziting Shen
 Compile:
 make
 (make format)
+(make tests)
 
 Execute:
 ./main
 (./format <disk name> [-s size])
+(./tests)
+
 
 Disk Format:
 ************************
@@ -25,6 +28,11 @@ store free block indices
 ************************
 swap region
 ************************
+
+
+Testing:
+A list of thorough unit tests is included in tests.c. If all the assertion pass, then the library should work in all situations.
+
 
 Limitations:
 1. Format will set the initial data_offset to 1% of the disk image size to leave some space for the inode region to grow. If the inode region grows larger than the given size, an error will be returned.

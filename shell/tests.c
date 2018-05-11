@@ -154,43 +154,6 @@ void test_f_close() {
 	assert(result == 0);
 }
 
-void test_f_read() {
-	int result;
-	int fd, fd_usr;
-
-	format("empty-disk", DEFAULT_DISK_SIZE);
-
-	printf("%s\n", "Mount empty-disk");
-	result = f_mount("empty-disk", 0, 0, 0);
-	assert(result == 0);
-
-	printf("%s\n", "Make /usr");
-	result = f_mkdir("/usr", PERMISSION_DEFAULT);
-	assert(result == 0);
-
-	printf("%s\n", "Open /usr");
-	fd_usr = f_opendir("/usr");
-	assert(fd_usr >= 0);
-
-	printf("%s\n", "Open /");
-	fd = f_opendir("/");
-	assert(fd >= 0);
-	
-	printf("%s\n", "Read an int from /");
-	int i;
-	result = f_read(&i, sizeof(int), 1, fd);
-	printf("%d\n", result);
-	assert(result == sizeof(int));
-	
-	printf("i should equal to the inode index in the following file entry:\n");
-	printf("i: %d\n", i);
-	print_fd(fd_usr);
-
-	printf("%s\n", "Unmount empty-disk");
-	result = f_umount(0, 0);
-	assert(result == 0);
-}
-
 void test_f_write() {
 	int result;
 	int fd;
@@ -1025,11 +988,6 @@ int main() {
 	// !!!! another error in valgrind for mysterious reason
 	printf("%s\n", "test open existing /design.txt after creating it");
 	test_f_open_existing();
-	printf("\n");
-
-	printf("%s\n", "create /usr, and read an int from /.");
-	printf("%s\n", "the int should be the inode index of /usr");
-	test_f_read();
 	printf("\n");
 
 	// !!!! another error in valgrind for mysterious reason
