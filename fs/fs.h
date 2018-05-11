@@ -101,13 +101,19 @@ Available flags:
 int f_umount(const char *target, int flags);
 
 /*------------helper functions for shell-------------------------*/
-char* get_dirs_name(int dir_fd);
-
 char* get_path(int inode_idx);
 
 int change_file_mode(const char *path, char* permissions);
 
 int convert_mode(const char* mode);
+
+char get_file_type(int inode_addr);
+
+int get_file_permission(int inode_addr);
+
+int get_file_uid(int inode_addr);
+
+int get_file_size(int inode_addr);
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@ using namespace std;
 /*deal with user mode*/
 
 bool ls(vector<string> argv){
-	/*to do: deal with -F and -l flags*/
+	string flag = "";
 	if (mount_or_not <= 0) {
 		cerr << "error: no mounted disk" << endl;
 		return true;
@@ -23,22 +23,54 @@ bool ls(vector<string> argv){
 	int cur_dir_fd;
 	if (argv.size() == 1){
 		cur_dir_fd = pwd_fd;
-	}
-	else{
-		string dir_name = argv[1];
-		char *dir_name_copy = strdup(dir_name.c_str());
-		if ((cur_dir_fd = f_opendir(dir_name_copy)) < 0) {
-			cerr << "error: fail to open the file" << endl;
+	} else {
+		if (argv[1] == "-F" || argv[1] == "-l") {
+			flag = argv[1];
+			if(argv.size() == 2) {
+				cur_dir_fd = pwd_fd;
+			} else {
+				string dir_name = argv[2];
+				char *dir_name_copy = strdup(dir_name.c_str());
+				if ((cur_dir_fd = f_opendir(dir_name_copy)) < 0) {
+					cerr << "error: fail to open the file" << endl;
+					free(dir_name_copy);
+					return true;
+				}
+				free(dir_name_copy);
+			}
+		} else {
+			string dir_name = argv[1];
+			char *dir_name_copy = strdup(dir_name.c_str());
+			if ((cur_dir_fd = f_opendir(dir_name_copy)) < 0) {
+				cerr << "error: fail to open the file" << endl;
+				free(dir_name_copy);
+				return true;
+			}
 			free(dir_name_copy);
-			return true;
 		}
-		free(dir_name_copy);
 	}
 	f_rewind(cur_dir_fd);
 	
+	if(flag == "-l") {
+		cout << "permission\tuid\tsize\tfilename" << endl;
+	}
 	struct file_entry temp_file_entry = f_readdir(cur_dir_fd);
 	while(temp_file_entry.node >= 0){
-		printf("%s\t", temp_file_entry.file_name);
+		if(flag == "")
+			printf("%s\t", temp_file_entry.file_name);
+		else if(flag == "-F") {
+			char file_type = get_file_type(temp_file_entry.node);
+			char posix = ' ';
+			if(file_type == TYPE_DIRECTORY) {
+				posix = '/';
+			}
+			printf("%s%c\t", temp_file_entry.file_name, posix);
+		} else if(flag == "-l") {
+			int file_permission = get_file_permission(temp_file_entry.node);
+			int file_uid = get_file_uid(temp_file_entry.node);
+			int file_size = get_file_size(temp_file_entry.node);
+			printf("%d\t%d\t%d\t%s\n", file_permission, file_uid, file_size, temp_file_entry.file_name);
+		}
 		temp_file_entry = f_readdir(cur_dir_fd);
 	}
 	cout << endl;

@@ -20,7 +20,6 @@ int next_fd = 0;
 
 size_t f_write_helper(const void *ptr, size_t size, size_t nitems, int fd, int offset_unit);
 int increment_next_fd();
-int convert_mode(const char* mode);
 struct file_entry find_subfile(int dir_fd, char *file_name);
 int create_file(int dir_fd, char *filename, int permission, char type);
 int remove_file(int dir_fd, int file_removed_inode_idx);
@@ -55,9 +54,7 @@ int find_free_block();
 
 int strend(const char *s, const char *t);
 
-
 char *get_dir_name(int dir_fd, int inode_idx);
-int change_file_mode(const char *path, char* permissions);
 //***************************LIBRARY FUNCTIONS******************
 int f_open(const char *path, const char *mode) {
 	int mode_binary = convert_mode(mode);
@@ -1478,6 +1475,22 @@ int change_file_mode(const char *path, char* permissions){
 		return -1;
 	}
 	return 0;
+}
+
+char get_file_type(int inode_addr) {
+	return cur_disk->inodes[inode_addr].type;
+}
+
+int get_file_permission(int inode_addr) {
+	return cur_disk->inodes[inode_addr].permission;
+}
+
+int get_file_uid(int inode_addr) {
+	return cur_disk->inodes[inode_addr].uid;
+}
+
+int get_file_size(int inode_addr) {
+	return cur_disk->inodes[inode_addr].size;
 }
 
 //****************************UTILITY FUNCTIONS*****************
