@@ -201,7 +201,7 @@ void test_f_write_multiple_times() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write integer 1000 to 1999 to /design.txt, one at a time");
@@ -243,7 +243,7 @@ void test_f_write_multiple_bytes() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write an integer array of size 1000 to /design.txt.");
@@ -286,7 +286,7 @@ void test_f_write_iblocks() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write an integer array of size 2000 to /design.txt.");
@@ -329,7 +329,7 @@ void test_f_write_i2block() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write an integer array of size 2000000 to /design.txt.");
@@ -374,7 +374,7 @@ void test_f_write_i3block() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write an integer array of size 20000 to /design.txt.");
