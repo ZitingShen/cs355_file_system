@@ -39,3 +39,8 @@ but I checked and everything seemed to be fine. I tried to fix them, but more er
 6. When the shell is started, if there is no disk named "DISK", the shell will format one for you. This is different from the spec's requirement.
 
 7. Only one disk can be mounted now by the shell automatically. The library does not implement mounting multiple disks or mounting at any arbitrary location.
+
+8. chmod only supports absolute mode. The mode are listed as following:
+#define PERMISSION_R		4
+#define	PERMISSION_W		2
+#define PERMISSION_X		1
