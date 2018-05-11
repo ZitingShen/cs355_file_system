@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <assert.h> 
 int pwd_fd;
-int uid;
+int uid = 0;
 
 void test_mount_umount() {
 	int result;
