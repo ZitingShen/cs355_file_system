@@ -165,7 +165,7 @@ void test_f_write() {
 	assert(result == 0);
 
 	printf("%s\n", "Create and open /design.txt");
-	fd = f_open("/design.txt", "w");
+	fd = f_open("/design.txt", "w+");
 	assert(fd >= 0);
 
 	printf("%s\n", "Write an integer 4242 to /design.txt");
